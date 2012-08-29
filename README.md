@@ -11,3 +11,7 @@ Don't ever want to rewrite this again.
 ## Usage
 
 @todo (dan)
+
+
+var PlayQueue = require('playqueue'),
+    pq = new PlayQueue;

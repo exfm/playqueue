@@ -1,20 +1,29 @@
-"use strict";
+(function(){
+    "use strict";
 
-function PlayQueue(){
-    this.items = [];
-}
+    function PlayQueue(){
+        this.items = [];
+    }
 
-PlayQueue.prototype.add = function(item){
-    this.items.push(item);
-};
+    PlayQueue.prototype.add = function(item){
+        this.items.push(item);
+    };
 
-PlayQueue.prototype.getItem = function(id){
-    var item;
-    this.items.some(function(i){
-        if(i.id === id){
-            item = i;
-            return true;
-        }
-    });
-    return item;
-};
+    PlayQueue.prototype.getItem = function(id){
+        var item;
+        this.items.some(function(i){
+            if(i.id === id){
+                item = i;
+                return true;
+            }
+        });
+        return item;
+    };
+
+    if(typeof module !== "undefined"){
+        module.exports = PlayQueue;
+    }
+    else{
+        window.PlayQueue = PlayQueue;
+    }
+}());
