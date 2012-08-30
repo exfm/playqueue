@@ -1,101 +1,146 @@
 (function(){
-    "use strict";
 
-    function PlayQueue(opts){
-        this.audio = null;
-this.soundcloud_key = null;
-this.notify_before_end = false;
-this.notify_song_half = false;
-this.smart_previous = true;
-this.load_timeout = 15000;
-this.use_local_storage = false;
-this.lengthCap = -1;
-this.getList = function(){
-    return _getList.apply(this);
+"use strict";
+
+// constructor
+function PlayQueue(opts){
+    
+    // soundcloud needs a consumer key to play songs
+    if(opts && opts.soundcloud_key){
+        if (typeof(opts.soundcloud_key) == "string"){
+            this.soundcloud_key = opts.soundcloud_key;
+        } 
+        else {
+            throw new TypeError("soundcloud_key must be a string");
+        }
+    }
+    
+    // mobile safari doesn't always fire 'ended' event. This will 
+    // look at the time and fire it manually when it's .1 to end
+    if(opts && opts.notify_before_end){
+        if (typeof(opts.notify_before_end) == "boolean"){
+            this.notify_before_end = opts.notify_before_end;
+        } 
+        else {
+            throw new TypeError("notify_before_end must be a boolean");
+        }
+    }
+    
+    // this will fire an event when the song is halfway done. 
+    // useful  for scrobbling
+    if(opts && opts.notify_song_half){
+        if (typeof(opts.notify_song_half) == "boolean"){
+            this.notify_song_half = opts.notify_song_half;
+        } 
+        else {
+            throw new TypeError("notify_song_half must be a boolean");
+        }
+    }
+    
+    // this will skip the current loading song after certain time has passed
+    if(opts && opts.load_timeout){
+        if (typeof(opts.load_timeout) == "number"){
+            this.load_timeout = opts.load_timeout;
+        } 
+        else {
+            throw new TypeError("load_timeout must be a number");
+        }
+    }
+    
+    // this will save the list, queueNumber and shuffled state to localStorage
+    if(opts && opts.use_local_storage){
+        if (typeof(opts.use_local_storage) == "boolean"){
+            this.use_local_storage = opts.use_local_storage;
+            if (this.use_local_storage == true){
+                _list = _getLocalStorageList().concat([]);
+                _queueNumber = _getLocalStorageQueueNumber();
+                _isShuffled = _getLocalStorageIsShuffled();
+            }
+        } 
+        else {
+            throw new TypeError("use_local_storage must be a boolean");
+        }
+    }
+    
+    // this will cap the list length at a certain number. 
+    if(opts && opts.length_cap){
+        if (typeof(opts.length_cap) == "number"){
+            this.length_cap = opts.length_cap;
+        } 
+        else {
+            throw new TypeError("length_cap must be a number");
+        }
+    }
+    
+    // audio is required!
+    if(opts && opts.audio) {
+        this.audio = opts.audio;
+        this.addAudioListeners();
+    } else {
+        throw new TypeError("EXPlayQueue requires an Audio object");
+        return;
+    }
+    
+    this.addEventListener("listChanged", this.saveLocally.bind(this), false);
+    try{ 
+        window.addEventListener("storage", function(e){
+            this.onStorageChange(e);
+        }, false);
+    } 
+    catch(e){}
 }
-this.getLocalStorageList = function(){
-    return _getLocalStorageList.apply(this);
-}
-this.getQueueNumber = function(){
-    return _queueNumber;
-}
-this.getLocalStorageQueueNumber = function(){
-    return _getLocalStorageQueueNumber.apply(this);
-}
-this.getSong = function(){
-    return _getSong.apply();
-}
-this.add = function(songs){
-    _add.apply(this, [songs]);
-}
-this.remove = function(removeAtIndex){
-    return _remove.apply(this, [removeAtIndex]);
-}
-this.clear = function(removeAtIndex){
-    _clear.apply(this);
-}
-this.move = function(itemIndex, moveToIndex){
-    _move.apply(this, [itemIndex, moveToIndex]);
-}
-this.play = function(playAtIndex){
-    _play.apply(this, [playAtIndex]);
-}
-this.playPause = function(){
-    _playPause.apply(this);
-}
-this.next = function(){
-    _next.apply(this);
-}
-this.previous = function(){
-    _previous.apply(this);
-}
-this.isStopped = function(){
-    return _isStopped;
-}
-this.stop = function(){
-    _stop.apply(this);
-}
-this.isShuffled = function(){
-    return _isShuffled;
-}
-this.setShuffled = function(b, start){
-    _setShuffled.apply(this, [b, start]);
-}
-this.toggleShuffle = function(start){
-    _toggleShuffle.apply(this, [start]);
-}
-this.getAudioProperties = function(){
-    return _getAudioProperties.apply(this);
-}
-this.refreshList = function(){
-    _refreshList.apply(this);
-}
-this.seek = function(percentage){
-    _seek.apply(this, [percentage]);
-}
-this.getSongAt = function(position){
-    return _getSongAt.apply(this, [position]);
-}
-this.addEventListener = function(eventName, callback, b){
-	_addEventListener.apply(this, [eventName, callback, b]);
-};
-this.removeEventListener = function(type, fn){
-	_removeEventListener.apply(this, [type, fn]);
-};
-this.savedSongProperties = ['id', 'url', 'title',
-                        'artist', 'album', 'buy_link',
-                        'image', 'source', 'viewer_love',
-                        'user_love', '_listPosition'];
-                        
-                        
-                        
-var _song_half_notified = false;
-var _list = [];
-var _queueNumber = 0;
-var _isShuffled = false;
-var _isStopped = true;
-var _loadTimeout;
-var _listeners = {
+
+
+// We need an audio object!
+PlayQueue.prototype.audio = null;
+
+// Soundcloud needs a consumer key to play songs
+PlayQueue.prototype.soundcloud_key = null;
+
+// Boolean if we should fire 'ended' event manually.
+// Mobile safari doesn't always fire 'ended' event. This will 
+// look at the time and fire it manually when it's .1 to end
+PlayQueue.prototype.notify_before_end = false;
+
+
+// Boolean if calling 'previous' function should start current song
+// playing again if we are more than 10 seconds in
+PlayQueue.prototype.smart_previous = true;
+
+// Number of milliseconds we should wait before deciding the current
+// song loading is not going to load and we should call next
+PlayQueue.prototype.load_timeout = 15000;
+
+// Boolean if we should store list, queueNumber 
+// and shuffled state in localStorage
+PlayQueue.prototype.use_local_storage = false;
+
+// Number of list length cap. -1 means no cap
+PlayQueue.prototype.lengthCap = -1;
+
+// Boolean if we should fire 'songHalf' event at halp point of playing song
+PlayQueue.prototype.notify_song_half = false;
+
+// Boolean if we already fired the song half event
+PlayQueue.prototype.song_half_notified = false;
+
+// The list array
+PlayQueue.prototype.list = [];
+
+// The position of current song in list
+PlayQueue.prototype.queueNumber = 0;
+
+// Boolean if the list is shuffled or not
+PlayQueue.prototype.isShuffled = false;
+
+// Boolean is the audio is stopped vs. playing/paused
+PlayQueue.prototype.isStopped = true;
+
+// Timeout for song load fails
+PlayQueue.prototype.loadTimeout;
+
+// Arrays for event listeners
+PlayQueue.prototype.listeners = {
 	'nextTrack' : [],
 	'previousTrack' : [],
 	'added' : [],
@@ -108,227 +153,213 @@ var _listeners = {
 	'play' : [],
 	'pause' : []
 };
-_setOptions.apply(this, [opts]);
-function _setOptions(opts){
-    if (opts && opts.soundcloud_key){
-        if (typeof(opts.soundcloud_key) == "string"){
-            this.soundcloud_key = opts.soundcloud_key;
-        } else {
-            throw new TypeError("soundcloud_key must be a string");
-        }
-    }
-    if (opts && opts.notify_before_end){
-        if (typeof(opts.notify_before_end) == "boolean"){
-            this.notify_before_end = opts.notify_before_end;
-        } else {
-            throw new TypeError("notify_before_end must be a boolean");
-        }
-    }
-    if (opts && opts.notify_song_half){
-        if (typeof(opts.notify_song_half) == "boolean"){
-            this.notify_song_half = opts.notify_song_half;
-        } else {
-            throw new TypeError("notify_song_half must be a boolean");
-        }
-    }
-    if (opts && opts.load_timeout){
-        if (typeof(opts.load_timeout) == "number"){
-            this.load_timeout = opts.load_timeout;
-        } else {
-            throw new TypeError("load_timeout must be a number");
-        }
-    }
-    if (opts && opts.use_local_storage){
-        if (typeof(opts.use_local_storage) == "boolean"){
-            this.use_local_storage = opts.use_local_storage;
-            if (this.use_local_storage == true){
-                _list = _getLocalStorageList().concat([]);
-                _queueNumber = _getLocalStorageQueueNumber();
-                _isShuffled = _getLocalStorageIsShuffled();
-            }
-        } else {
-            throw new TypeError("use_local_storage must be a boolean");
-        }
-    }
-    if (opts && opts.length_cap){
-        if (typeof(opts.length_cap) == "number"){
-            this.length_cap = opts.length_cap;
-        } else {
-            throw new TypeError("length_cap must be a number");
-        }
-    }
-    if (opts && opts.audio) {
-        this.audio = opts.audio;
-        _addAudioListeners.apply(this);
-    } else {
-        throw new TypeError("EXPlayQueue requires an Audio object");
-        return;
-    }
-    _addEventListener("listChanged", _saveLocally.bind(this), false);
-    try { 
-        window.addEventListener("storage", function(e){
-            _onStorageChange.apply(this, [e]);
-        }, false);
-    } catch(e){}
-}
-function _addAudioListeners(){
-    this.audio.addEventListener("canplay", _canPlay.bind(this), false);
+
+// Which song properties we should save to localStorage
+PlayQueue.prototype.savedSongProperties = [
+    'id', 'url', 'title',
+    'artist', 'album', 'buy_link',
+    'image', 'source', 'viewer_love',
+    'user_love', '_listPosition'
+];
+
+// Add listeners to audio object
+PlayQueue.prototype.addAudioListeners = function(){
+    this.audio.addEventListener('canplay', this.canPlay.bind(this), false);
     var bindedTimeUpdate = false;
-    if (this.notify_before_end == true){
-        this.audio.addEventListener("timeupdate", _timeUpdate.bind(this), false);
+    if(this.notify_before_end == true){
+        this.audio.addEventListener('timeupdate', this.timeUpdate.bind(this), false);
         bindedTimeUpdate = true;
-    } else {
-        this.audio.addEventListener("ended", _next.bind(this), false);
+    } 
+    else{
+        this.audio.addEventListener('ended', this.next.bind(this), false);
     }
-    if (this.notify_song_half == true && bindedTimeUpdate == false){
-        this.audio.addEventListener("timeupdate", _timeUpdate.bind(this), false);
+    if(this.notify_song_half == true && bindedTimeUpdate == false){
+        this.audio.addEventListener('timeupdate', this.timeUpdate.bind(this), false);
     }
-    this.audio.addEventListener("error", _next.bind(this), false);
-    this.audio.addEventListener("play", _audioOnPlay.bind(this), false);
-    this.audio.addEventListener("pause", _audioOnPause.bind(this), false);
+    this.audio.addEventListener('error', this.next, false);
+    this.audio.addEventListener('play', this.audioOnPlay.bind(this), false);
+    this.audio.addEventListener('pause', this.audioOnPause.bind(this), false);
 }
-function _saveLocally(){
-    if (this.use_local_storage == true){
-        localStorage.setItem("exPlayQueue_list", JSON.stringify(_getList()));
-        localStorage.setItem("exPlayQueue_queueNumber", _queueNumber);
-        localStorage.setItem("exPlayQueue_isShuffled", _isShuffled);
-    }
+
+// return the list of songs
+PlayQueue.prototype.getList = function(){
+    return this.list;
 }
-function _getList(){
-    return _list;
-}
-function _getLocalStorageList(){
+
+// return the list stored in localStorage
+PlayQueue.prototype.getLocalStorageList = function(){
     var l = localStorage.getItem("exPlayQueue_list");
-    if (l){
+    if(l){
         return JSON.parse(l);
     }
     return [];
 }
-function _getLocalStorageQueueNumber(){
+
+// return the current queue position
+PlayQueue.prototype.getQueueNumber = function(){
+    return this.queueNumber || 0;
+}
+
+// return the queue position stored in localStorage
+PlayQueue.prototype.getLocalStorageQueueNumber = function(){
     var n = localStorage.getItem("exPlayQueue_queueNumber");
-    if (n){
+    if(n){
         return JSON.parse(n);
     }
     return 0;
 }
-function _getLocalStorageIsShuffled(){
-    var n = localStorage.getItem("exPlayQueue_isShuffled");
-    if (n){
-        return JSON.parse(n);
-    }
-    return false;
+
+// get the current song
+PlayQueue.prototype.getSong = function(){
+    return this.getList()[this.queueNumber] || null;
 }
-function _getSong(){
-    return _list[_queueNumber] || null;
-}
-function _add(songs){
-    var currentListLen = _getList().length;
-    var added = [];
-    if (typeof(songs) == "string"){
-        var song = {
-            "url" : songs, 
-            "_listPosition" : _list.length
-        }
-        _list.push(song);
-        added.push(song);
-    }
-    if (typeof(songs) == "object"){
-        if(songs.length){
-            var len = songs.length;
-            for (var i = 0; i < len; i++){
-                var song = songs[i];
-                song._listPosition = _list.length;
-                var newSong = _getSavedSong.apply(this, [song]);
-                _list.push(newSong);
-                added.push(newSong);
-            }
-        } else {
-            songs._listPosition = _list.length;
-            var newSong = _getSavedSong.apply(this, [songs]);
-            _list.push(newSong);
-            added.push(newSong);
-        }
-    }
-    var newList = _getList();
-    _dispatchListChanged(newList, _queueNumber, added, [], currentListLen, currentListLen, newList.length);
-}
-function _getSavedSong(song){
+
+// returns a new song object only with properties in savedSongProperties
+PlayQueue.prototype.getSavedSong = function(song){
     var newSong = {};
-    for (var prop in this.savedSongProperties){
+    for(var prop in this.savedSongProperties){
         newSong[this.savedSongProperties[prop]] = song[this.savedSongProperties[prop]];
     }
     return newSong;
 }
-function _remove(n){
-    var currentListLen = _getList().length;
+
+// Save the list, queueNumber and shuffled state to localStorage
+PlayQueue.prototype.saveLocally = function(){
+    if (this.use_local_storage == true){
+        localStorage.setItem('exPlayQueue_list', JSON.stringify(this.getList()));
+        localStorage.setItem('exPlayQueue_queueNumber', this.queueNumber);
+        localStorage.setItem('exPlayQueue_isShuffled', this.isShuffled);
+    }
+}
+
+// add songs to the list. Takes an array of objects,
+// a single object or a single url string
+PlayQueue.prototype.add = function(songs){
+    var currentListLen = this.getList().length;
+    var added = [];
+    if(typeof(songs) == "string"){
+        var song = {
+            "url" : songs, 
+            "_listPosition" : this.getList().length
+        }
+        this.getList().push(song);
+        added.push(song);
+    }
+    if(typeof(songs) == "object"){
+        if(songs.length){
+            var len = songs.length;
+            for (var i = 0; i < len; i++){
+                var song = songs[i];
+                song._listPosition = this.getList().length;
+                var newSong = this.getSavedSong(song);
+                this.getList().push(newSong);
+                added.push(newSong);
+            }
+        } 
+        else{
+            songs._listPosition = this.getList().length;
+            var newSong = this.getSavedSong(songs);
+            this.getList().push(newSong);
+            added.push(newSong);
+        }
+    }
+    var newList = this.getList();
+    this.dispatchListChanged(
+        newList, 
+        this.queueNumber, 
+        added, 
+        [], 
+        currentListLen, currentListLen, newList.length);
+}
+
+// remove a song from the list by index
+PlayQueue.prototype.remove = function(n){
+    var currentListLen = this.getList().length;
     var returnValue = -1;
-    if(_list[n]){
-        var removed = _list.splice(n, 1);
-        if (_queueNumber == n){
+    var list = this.getList();
+    if(list[n]){
+        var removed = list.splice(n, 1);
+        if(this.queueNumber == n){
             if (!this.audio.paused){
-                _queueNumber--;
-                _next.apply(this, [true]);
+                this.queueNumber--;
+                this.next(true);
             }
         }
-        if (_queueNumber > n){
-            _queueNumber--;
+        if(this.queueNumber > n){
+            this.queueNumber--;
         }
-        var len = _list.length;
-        _updateListPositions.apply(this, [removed[0]._listPosition]);
-        var newList = _getList();
-        _dispatchListChanged(newList, _queueNumber, [], removed, null, currentListLen, newList.length);
+        var len = this.getList().length;
+        this.updateListPositions.apply(removed[0]._listPosition);
+        var newList = this.getList();
+        this.dispatchListChanged(newList, this.queueNumber, [], removed, null, currentListLen, newList.length);
         returnValue = n;
     }
     return returnValue;
 }
-function _clear(){
-    var removed = _list.concat([]);
-    _list = [];
-    _queueNumber = 0;
+
+// clear the list, reset queueNumber, shuffled
+PlayQueue.prototype.clear = function(){
+    var removed = this.getList().concat([]);
+    this.list = [];
+    this.queueNumber = 0;
     this.setShuffled(false);
     this.stop();
-    _dispatchListChanged([], _queueNumber, [], removed, null, 0, 0);
+    this.dispatchListChanged([], this.queueNumber, [], removed, null, 0, 0);
 }
-function _move(itemIndex, moveToIndex){
-    if (itemIndex == moveToIndex){
+
+// move a song from one psoition to another
+PlayQueue.prototype.move = function(itemIndex, moveToIndex){
+    if(itemIndex == moveToIndex){
         throw new TypeError("Cannot move item into it's own position");
     } 
-    var len = _getList().length - 1;
-    if (len < itemIndex){
+    var len = this.getList().length - 1;
+    if(len < itemIndex){
         throw new TypeError("itemIndex out of bounds");
     }
-    if (len < moveToIndex){
+    if(len < moveToIndex){
         throw new TypeError("moveToIndex out of bounds");
     }
-    var song = _list.splice(itemIndex, 1);
-    _list.splice(moveToIndex, 0, song[0]);
-    if (!_isShuffled){
-        _updateListPositions.apply(this);
+    var song = this.getList().splice(itemIndex, 1);
+    this.getList().splice(moveToIndex, 0, song[0]);
+    if(!this.isShuffled){
+        this.updateListPositions();
     }
-    if (_queueNumber == itemIndex){
-        _queueNumber = moveToIndex;
-    } else {
-        if (itemIndex < _queueNumber && moveToIndex >= _queueNumber){
-            _queueNumber--;
+    if(this.queueNumber == itemIndex){
+        this.queueNumber = moveToIndex;
+    } 
+    else{
+        if(itemIndex < this.queueNumber && moveToIndex >= this.queueNumber){
+            this.queueNumber--;
         }
-        if (itemIndex > _queueNumber && moveToIndex <= _queueNumber){
-            _queueNumber++;
+        if(itemIndex > this.queueNumber && moveToIndex <= this.queueNumber){
+            this.queueNumber++;
         }
     }
-    var newList = _getList();
-    _dispatchListChanged(newList, _queueNumber, [], [], null, newList.length, newList.length);
+    var newList = this.getList();
+    this.dispatchListChanged(
+        newList, 
+        this.queueNumber, 
+        [], 
+        [], 
+        null, 
+        newList.length, 
+        newList.length
+    );
 }
-function _updateListPositions(n){
-    var len = _list.length;
-    if (len > 0){
-        if (!this.isShuffled()){
-            for (var i = 0; i < len; i++){
-                var song = _list[i];
+
+// after the list was manipulated, update the _listPosition property on each song
+PlayQueue.prototype.updateListPositions = function(n){
+    var len = this.getList().length;
+    if(len > 0){
+        if (!this.isShuffled){
+            for(var i = 0; i < len; i++){
+                var song = this.getList()[i];
                 song._listPosition = i;
             }
-        } else {
-            for (var i = 0; i < len; i++){
-                var song = _list[i];
+        } 
+        else{
+            for(var i = 0; i < len; i++){
+                var song = this.getList()[i];
                 if (song._listPosition > n){
                     song._listPosition--;
                 }
@@ -336,191 +367,243 @@ function _updateListPositions(n){
         }
     }
 }
-function _play(n){
-    if (_list[n]){
-        clearTimeout(_loadTimeout);
-        _isStopped = false;
-        _song_half_notified = false;
-        _queueNumber = n;
-        _song = _getSong();
-        _dispatchEvent("loading", 
+
+// play a song at a given index
+PlayQueue.prototype.play = function(n){
+    if(this.getList()[n]){
+        clearTimeout(this.loadTimeout);
+        this.isStopped = false;
+        this.song_half_notified = false;
+        this.queueNumber = n;
+        var song = this.getSong();
+        this.dispatchEvent("loading", 
             {
-                'song': _song, 
-                'queueNumber': _queueNumber, 
+                'song': song, 
+                'queueNumber': this.queueNumber, 
                 'audio': this.getAudioProperties()
             }
         );
-        var url = _song.url;
-        if (this.soundcloud_key != null){
-            if (url.indexOf("soundcloud.com") != -1){
+        var url = song.url;
+        if(this.soundcloud_key != null){
+            if(url.indexOf("soundcloud.com") != -1){
                 if (url.indexOf("?") == -1){
                     url = url+"?consumer_key="+this.soundcloud_key;
-                } else {
+                } 
+                else{
                     url = url+"&consumer_key="+this.soundcloud_key;
                 }
             }
         }
         this.audio.src = url;
         this.audio.load();
-        if (this.load_timeout != -1){
-            _loadTimeout = setTimeout(_timeoutLoading.bind(this), this.load_timeout);
+        if(this.load_timeout != -1){
+            this.loadTimeout = setTimeout(
+                this.timeoutLoading.bind(this), 
+                this.load_timeout
+            );
         }
-        if (this.use_local_storage == true){
-            localStorage.setItem("exPlayQueue_queueNumber", _queueNumber);
+        if(this.use_local_storage == true){
+            localStorage.setItem("exPlayQueue_queueNumber", this.queueNumber);
         }
-        if (this.length_cap != -1){
-            if (_list.length > this.length_cap){
-                var cutNumber = _list.length - this.length_cap;
-                if (_queueNumber < cutNumber){
-                    cutNumber = _queueNumber - 1;
+        if(this.length_cap != -1){
+            if(this.getList().length > this.length_cap){
+                var cutNumber = this.getList().length - this.length_cap;
+                if(this.queueNumber < cutNumber){
+                    cutNumber = this.queueNumber - 1;
                 }
-                _queueNumber -= cutNumber;
-                var currentListLen = _list.length; 
-                var removed = _list.splice(0, cutNumber);
-                _updateListPositions.apply(this, [0]);
-                _dispatchListChanged(_list, _queueNumber, [], removed, null, currentListLen, _list.length);
+                this.queueNumber -= cutNumber;
+                var currentListLen = this.getList().length; 
+                var removed = this.getList().splice(0, cutNumber);
+                this.updateListPositions(0);
+                this.dispatchListChanged(
+                    this.getList(), 
+                    this.queueNumber, 
+                    [], 
+                    removed, 
+                    null, 
+                    currentListLen, 
+                    this.getList().length
+                );
             }
         }
-    } else {
-        throw new TypeError("Index out of bounds. Got: "+n+" Length: "+_list.length);
+    } 
+    else {
+        throw new TypeError("Index out of bounds. Got: "
+            +n+" Length: "+this.getList().length);
     }
 }
-function _playPause(){
-    if (_isStopped){
-        if (_list[_queueNumber]){
-            this.play(_queueNumber);
+
+// This will toggle paused state of audio. 
+// If stopped, will start playing first song
+PlayQueue.prototype.playPause = function(){
+    if(this.isStopped){
+        if(this.getList()[_queueNumber]){
+            this.play(this.queueNumber);
         }
-    } else {
-        if (this.audio.paused){
+    } 
+    else{
+        if(this.audio.paused){
             this.audio.play();
-        } else {
+        } 
+        else{
             this.audio.pause();
         }
     }
 }
-function _canPlay(){
+
+// Fires 'playing' event when 'canplay' audio event is fired. 
+// Adds some useful data
+PlayQueue.prototype.canPlay = function(){
     this.audio.play();
-    _dispatchEvent("playing", 
+    this.dispatchEvent("playing", 
         {
-            'song': _getSong(), 
-            'queueNumber': _queueNumber,  
+            'song': this.getSong(), 
+            'queueNumber': this.queueNumber,  
             'audio': this.getAudioProperties()
         }
     );
 }
-function _timeUpdate(){
-    if (this.notify_before_end == true && this.audio.duration > 0 && this.audio.duration - this.audio.currentTime < .5){
-        _next.apply(this);
+
+// Listener on audio timeupdate
+// Handles notify_before_end and notify_song_half
+PlayQueue.prototype.timeUpdate = function(){
+    if(this.notify_before_end == true 
+        && this.audio.duration > 0 
+        && this.audio.duration - this.audio.currentTime < .5
+    ){
+        this.next();
     }
-    if (this.notify_song_half == true && _song_half_notified == false && this.audio.currentTime / this.audio.duration > .5){
-        _song_half_notified = true;
-        _dispatchEvent("songHalf", 
+    if(this.notify_song_half == true 
+        && _song_half_notified == false 
+        && this.audio.currentTime / this.audio.duration > .5
+    ){
+        this.song_half_notified = true;
+        this.dispatchEvent('songHalf', 
             {
-                'song': _getSong(), 
-                'queueNumber': _queueNumber
+                'song': this.getSong(), 
+                'queueNumber': this.queueNumber
             }
         );
     }
 }
-function _timeoutLoading(){
-    if (this.audio.paused == false){
-        if (this.audio.currentTime < 1){
+
+// This is called when loadTimeout is reached
+// If song has not started, next is called
+PlayQueue.prototype.timeoutLoading = function(){
+    if(this.audio.paused == false){
+        if(this.audio.currentTime < 1){
             this.next();
         }
     }
 }
-function _next(e){
-    if (_queueNumber < _list.length - 1){
-        _queueNumber++;
-        this.play(_queueNumber);
-        _dispatchEvent("nextTrack", 
+
+// This is called to skip to the next song in the list
+// Called automatically when a song ends
+// If there are no more songs in the list, calles stop
+PlayQueue.prototype.next = function(e){
+    if(this.queueNumber < this.getList().length - 1){
+        this.queueNumber++;
+        this.play(this.queueNumber);
+        this.dispatchEvent('nextTrack', 
             {
-                'song': _getSong(), 
-                'queueNumber': _queueNumber
+                'song': this.getSong(), 
+                'queueNumber': this.queueNumber
             }
         );
-    } else {
+    } 
+    else{
         if (typeof(e) != "undefined"){
             this.stop();
         } 
     }
 }
-function _previous(){
-    if (this.smart_previous == true){
-        if (this.audio.currentTime > 10){
-            this.play(_queueNumber);
-        } else {
-            if (_queueNumber > 0){
-                _queueNumber--;
-                this.play(_queueNumber);
-                _dispatchEvent("previousTrack", 
+
+// This is called to go to the previous song in the list
+// If smart_previous is true, it will go back to current song
+// when it is over 10 seconds in. Or else it will go to previous song
+PlayQueue.prototype.previous = function(){
+    if(this.smart_previous == true){
+        if(this.audio.currentTime > 10){
+            this.play(this.queueNumber);
+        } 
+        else {
+            if(this.queueNumber > 0){
+                this.queueNumber--;
+                this.play(this.queueNumber);
+                this.dispatchEvent('previousTrack', 
                     {
-                        'song': _getSong(), 
-                        'queueNumber': _queueNumber
+                        'song': this.getSong(), 
+                        'queueNumber': this.queueNumber
                     }
                 );
             }
         }
-    } else {
-        if (_queueNumber > 0){
-            _queueNumber--;
-            this.play(_queueNumber);
-            _dispatchEvent("previousTrack", 
+    } 
+    else{
+        if(this.queueNumber > 0){
+            this.queueNumber--;
+            this.play(this.queueNumber);
+            this.dispatchEvent('previousTrack', 
                 {
-                    'song': _getSong(), 
-                    'queueNumber': _queueNumber
+                    'song': this.getSong(), 
+                    'queueNumber': this.queueNumber
                 }
             );
         }
     }
 }
-function _stop(){
-    _isStopped = true;
-    _queueNumber = 0;
-    /*
-try {
-        this.audio.pause();
-        this.audio.src = "";
-        this.audio.currentTime = 0;
-    } catch(e){}
-*/
-    _dispatchEvent("stop", 
+
+// This is called when we reach the end of the list
+// Reset queueNumber
+PlayQueue.prototype.stop = function(){
+    this.isStopped = true;
+    this.queueNumber = 0;
+    this.dispatchEvent('stop', 
         {
             'audio': this.getAudioProperties()
         }
     );
 }
-function _setShuffled(b, start){
-    if (typeof(b) == "boolean"){
-        if (b == true){
-            if(_isShuffled == false){
-                _shuffleList.apply(this, [start]);
+
+// Set shuffled state
+PlayQueue.prototype.setShuffled = function(b, start){
+    if(typeof(b) == "boolean"){
+        if(b == true){
+            if(this.isShuffled == false){
+                this.shuffleList(start);
             }
-        } else {
-            if(_isShuffled == true){
-                _unShuffleList.apply(this, [start]);
+        } 
+        else{
+            if(this.isShuffled == true){
+                this.unShuffleList(start);
             }
         }
-    } else {
+    } 
+    else{
         throw new TypeError("setShuffled only accepts booleans");
     }
 }
-function _toggleShuffle(start){
-    if (_isShuffled == true){
-        _unShuffleList.apply(this, [start]);
-    } else {
-        _shuffleList.apply(this, [start]);
+
+// Toggled shuffled state
+PlayQueue.prototype.toggleShuffle = function(start){
+    if (this.isShuffled == true){
+        this.unShuffleList(start);
+    } 
+    else{
+        this.shuffleList(start);
     }
-    return _isShuffled;
+    return this.isShuffled;
 }
-function _shuffleList(start){
-    var len = _list.length;
+
+// Shuffle the list. 
+PlayQueue.prototype.shuffleList = function(start){
+    var len = this.getList().length;
     if (len > 0){
-        var playingSongPosition = _list[_queueNumber]._listPosition;
+        var playingSongPosition = this.getList()[this.queueNumber]._listPosition;
         start = start || 0;
-        var toShuffle = _list.splice(start, _list.length - start);  
-        _shuffle(toShuffle);
-        var first = _list.splice(0, start);
+        var toShuffle = this.getList().splice(start, this.getList().length - start);  
+        this.shuffle(toShuffle);
+        var first = this.getList().splice(0, start);
         var newList = first.concat(toShuffle);
         for (var i = 0; i < len; i++){
             var song = newList[i];
@@ -529,131 +612,189 @@ function _shuffleList(start){
                 newList.splice(start, 0, song);
             }
         }
-        _list = newList.concat([]);
-        _queueNumber = start;
+        this.getList() = newList.concat([]);
+        this.queueNumber = start;
     }
-    _isShuffled = true;
-    _dispatchListChanged(_list, _queueNumber, [], [], null, _list.length, _list.length);
-    _dispatchEvent("shuffleToggled", 
+    this.isShuffled = true;
+    this.dispatchListChanged(
+        this.getList(), 
+        this.queueNumber, 
+        [], 
+        [], 
+        null, 
+        this.getList().length,
+        this.getList().length
+    );
+    this.dispatchEvent('shuffleToggled', 
         {
-            'queueNumber': _queueNumber, 
-            'isShuffled': _isShuffled, 
-            'list': _list,
+            'queueNumber': this.queueNumber, 
+            'isShuffled': this.isShuffled, 
+            'list': this.getList(),
             'shuffledPart': toShuffle
         }
     );
 }
-function _unShuffleList(){
-    var len = _list.length;
+
+// Un-shuffle the list
+PlayQueue.prototype.unShuffleList = function(){
+    var len = this.getList().length;
     if (len > 0){
         var newList = [];
         for (var i = 0; i < len; i++){
             var song = _list[i];
             newList[song._listPosition] = song;
         }
-        _queueNumber = _getSong()._listPosition;
-        _list = newList.concat([]);
+        this.queueNumber = this.getSong()._listPosition;
+        this.getList() = newList.concat([]);
     }
-    _isShuffled = false;
-    _dispatchListChanged(_list, _queueNumber, [], [], null, _list.length, _list.length);
-    _dispatchEvent("shuffleToggled", 
+    this.isShuffled = false;
+    this.dispatchListChanged(
+        this.getList(), 
+        _queueNumber, 
+        [], 
+        [], 
+        null, 
+        this.getList().length, 
+        this.getList().length
+    );
+    this.dispatchEvent('shuffleToggled', 
         {
-            'queueNumber': _queueNumber, 
-            'isShuffled': _isShuffled, 
-            'list': _list, 
+            'queueNumber': this.queueNumber, 
+            'isShuffled': this.isShuffled, 
+            'list': this.getList(), 
             'shuffledPart': []
         }
     );
 }
-function _shuffle(o){
-    //+ Jonas Raoni Soares Silva
-	//@ http://jsfromhell.com/array/shuffle [v1.0]
+
+// Shuffle algo
+//+ Jonas Raoni Soares Silva
+//@ http://jsfromhell.com/array/shuffle [v1.0]
+PlayQueue.prototype.shuffle = function(o){
     for(var j, x, i = o.length; i; j = parseInt(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
     return o;
 }
-function _getAudioProperties(){
+
+// Return current audio properties plus some useful data
+PlayQueue.prototype.getAudioProperties = function(){
     return {
-        "paused" : this.audio.paused,
-        "isStopped" : _isStopped,
-        "currentTime" : this.audio.currentTime,
-        "duration" : this.audio.duration,
-        "src" : this.audio.src,
-        "volume" : this.audio.volume,
-        "queueNumber": _queueNumber,
+        'paused': this.audio.paused,
+        'isStopped': this.isStopped,
+        'currentTime': this.audio.currentTime,
+        'duration': this.audio.duration,
+        'src': this.audio.src,
+        'volume': this.audio.volume,
+        'queueNumber': this.queueNumber,
         'song': this.getSong()
     }
 }
-function _refreshList(){
-    var newList = _getList();
-    _dispatchListChanged(newList, _queueNumber, [], [], null, newList.length, newList.length);
+
+// Force a 'listChanged' event to trigger
+PlayQueue.prototype.refreshList = function(){
+    var newList = this.getList();
+    this.dispatchListChanged(
+        newList, 
+        this.queueNumber, 
+        [], 
+        [], 
+        null, 
+        newList.length, 
+        newList.length
+    );
 }
-function _audioOnPlay(e){
-    _dispatchEvent("play", 
+
+// Trigger play event when audio play is triggered adding some useful data
+PlayQueue.prototype.audioOnPlay = function(e){
+    this.dispatchEvent('play', 
         {
-            'song': _getSong.apply(this), 
-            'audio': _getAudioProperties.apply(this), 
-            'queueNumber': _queueNumber
+            'song': this.getSong(), 
+            'audio': this.getAudioProperties(), 
+            'queueNumber': this.queueNumber
         }
     );
 }
-function _audioOnPause(e){
-    _dispatchEvent("pause", 
+
+// Trigger pause event when audio play is triggered adding some useful data
+PlayQueue.prototype.audioOnPause = function(e){
+    this.dispatchEvent('pause', 
         {
-            'song': _getSong.apply(this), 
-            'audio': _getAudioProperties.apply(this), 
-            'queueNumber': _queueNumber
+            'song': this.getSong(), 
+            'audio': this.getAudioProperties(), 
+            'queueNumber': this.queueNumber
         }
     );
 }
-function _getSongAt(position){
-    return _list[position];
+
+// Return song in list at index provided
+PlayQueue.prototype.getSongAt = function(position){
+    return this.getList()[position];
 }
-function _seek(percentage){
+
+// Seek audio by percentage of song
+PlayQueue.prototype.seek = function(percentage){
     if (!isNaN(this.audio.duration)){
         this.audio.currentTime = Math.floor(percentage * this.audio.duration);
     }
 }
-function _dispatchListChanged(list, queueNumber, added, removed, positionAddedAt, oldListLength, newListLength){
-    _dispatchEvent("listChanged", 
+
+// Call this to trigger 'listChanged' event
+PlayQueue.prototype.dispatchListChanged = function(
+        list, 
+        queueNumber, 
+        added, 
+        removed, 
+        positionAddedAt, 
+        oldListLength, 
+        newListLength
+    ){
+    this.dispatchEvent('listChanged', 
         {
             'list': list, 
-            'queueNumber': _queueNumber, 
+            'queueNumber': queueNumber, 
             'added': added,
             'removed': removed,
             'positionAddedAt': positionAddedAt, 
             'oldListLength': oldListLength, 
             'newListLength': newListLength,
-            'isShuffled': _isShuffled
+            'isShuffled': this.isShuffled
         }
     );
 }
-function _onStorageChange(e){
-    if (e.key == 'exPlayQueue_list'){
+
+// storagechange listener
+PlayQueue.prototype.onStorageChange = function(e){
+    if(e.key == 'exPlayQueue_list'){
         var list = JSON.parse(e.newValue);
     }
-    if (e.key == 'exPlayQueue_queueNumber'){
+    if(e.key == 'exPlayQueue_queueNumber'){
         
     }
 }
-function _addEventListener(eventName, callback, b){
-    for (var i in _listeners){
-		if (eventName == i){
-			_listeners[i].push(callback);
+
+// Event emitter add
+PlayQueue.prototype.addEventListener = function(eventName, callback, b){
+    for(var i in this.listeners){
+		if(eventName == i){
+			this.listeners[i].push(callback);
 			break;
 		};
 	};
 };
-function _removeEventListener(type, fn){
-	if (typeof _listeners[type] != 'undefined') {
-		for (var i = 0, l; l = _listeners[type][i]; i++) {
+
+// Event emitter remove
+PlayQueue.prototype.removeEventListener = function(type, fn){
+	if(typeof this.listeners[type] != 'undefined') {
+		for(var i = 0, l; l = this.listeners[type][i]; i++) {
 	    	if (l == fn) break;
 	    }
-	_listeners[type].splice(i, 1);
+	this.listeners[type].splice(i, 1);
 	}
 };
-function _dispatchEvent(type, object){
-	if (typeof _listeners[type] != 'undefined' && _listeners[type].length) {
-		var array = _listeners[type].slice();
+
+// Event emitter trigger
+PlayQueue.prototype.dispatchEvent = function(type, object){
+	if(typeof this.listeners[type] != 'undefined' && this.listeners[type].length) {
+		var array = this.listeners[type].slice();
     	for (var i = 0, l; l = array[i]; i++) {
     		var timeStamp = new Date().getTime();
     		l.apply(object, [
@@ -668,13 +809,13 @@ function _dispatchEvent(type, object){
 	}
     return false;
 };
+    
+// check if we've got require
+if(typeof module !== "undefined"){
+    module.exports = PlayQueue;
+}
+else{
+    window.PlayQueue = PlayQueue;
+}
 
-    }
-
-    if(typeof module !== "undefined"){
-        module.exports = PlayQueue;
-    }
-    else{
-        window.PlayQueue = PlayQueue;
-    }
-}());
+}()); // end wrapper
