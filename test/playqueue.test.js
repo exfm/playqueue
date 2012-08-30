@@ -1,18 +1,16 @@
 "use strict";
 
-var songUrlZero = 'http://serve.castfire.com/audio/1136016/'+
-    'frog-nancy-kerrigan_2012-08-28-170816.128.mp3';
-var songUrlOne = 'http://serve.castfire.com/audio/1133808/'+
-    'such-gold-keyhole-m-o_2012-08-27-175708.128.mp3';
-var songUrlTwo = 'http://serve.castfire.com/audio/1129506/'+
-    'solos-carpe-diem_2012-08-24-172906.128.mp3';
-var songUrlThree = 'http://serve.castfire.com/audio/1129504/'+
-    'fierce-creatures-catacomb-party_2012-08-24-172704.128.mp3';
+var songUrlZero = 'music/test0.mp3';
+var songUrlOne = 'music/test1.mp3';
+var songUrlTwo = 'music/test2.mp3';
+var songUrlThree = 'music/test3.mp3';
     
 function createNewPlayQueue(){
+    var a = new Audio();
+    a.volume = 0;
     var pq = new PlayQueue(
         {
-            'audio' : new Audio()
+            'audio': a
         }
     );
     return pq;
@@ -62,6 +60,12 @@ describe("PlayQueue", function(){
                 });
                 pq.refreshList();
             });
+            it("should return the correct song when queried by position", function(){
+                var pq = createNewPlayQueue();
+                pq.add(songUrlZero);
+                assert.equal(JSON.stringify(pq.getSongAt(0)), 
+                    '{"url":"'+songUrlZero+'","_listPosition":0}');
+            });
         }); // end main
         
         describe("opts", function(){
@@ -77,7 +81,74 @@ describe("PlayQueue", function(){
                     }, /soundcloud_key must be a string/
                 );
             });
-        });
+            it("should not accept notify_before_end unless it's a boolean", function(){
+                assert.throw(
+                    function(){
+                        new PlayQueue(
+                            {
+                                'audio' : new Audio(),
+                                'notify_before_end': 'foo'
+                            }
+                        )
+                    }, /notify_before_end must be a boolean/
+                );
+            });
+            it("should not accept notify_song_half unless it's a boolean", function(){
+                assert.throw(
+                    function(){
+                        new PlayQueue(
+                            {
+                                'audio' : new Audio(),
+                                'notify_song_half': 'foo'
+                            }
+                        )
+                    }, /notify_song_half must be a boolean/
+                );
+            });
+            it("should not accept load_timeout unless it's a number", function(){
+                assert.throw(
+                    function(){
+                        new PlayQueue(
+                            {
+                                'audio' : new Audio(),
+                                'load_timeout': 'foo'
+                            }
+                        )
+                    }, /load_timeout must be a number/
+                );
+            });
+            it("should not accept use_local_storage unless it's a boolean", function(){
+                assert.throw(
+                    function(){
+                        new PlayQueue(
+                            {
+                                'audio' : new Audio(),
+                                'use_local_storage': 'foo'
+                            }
+                        )
+                    }, /use_local_storage must be a boolean/
+                );
+            });
+            it("should not accept length_cap unless it's a boolean", function(){
+                assert.throw(
+                    function(){
+                        new PlayQueue(
+                            {
+                                'audio' : new Audio(),
+                                'length_cap': 'foo'
+                            }
+                        )
+                    }, /length_cap must be a number/
+                );
+            });
+            it("should throw an error if no audio object is passed in", function(){
+                assert.throw(
+                    function(){
+                        new PlayQueue()
+                    }, /EXPlayQueue requires an Audio object/
+                );
+            });
+        }); // end opts
         
         describe("add", function(){
             it("should add an array of song objects to list", function(){
@@ -154,7 +225,7 @@ describe("PlayQueue", function(){
                 assert.equal(pq.getList()[2]._listPosition, 2);
                 assert.equal(pq.getList()[3]._listPosition, 3);
             });
-            it("not allow you to move a song to the same position", function(){
+            it("should not allow you to move a song to the same position", function(){
                 var pq = createNewPlayQueue();
                 addSongs(pq);
                 assert.throw(
@@ -163,7 +234,7 @@ describe("PlayQueue", function(){
                     }), /Cannot move item into it's own position/
                 );
             });
-            it("not allow you to move a song to a position greater than the list length", function(){
+            it("should not allow you to move a song to a position greater than the list length", function(){
                 var pq = createNewPlayQueue();
                 addSongs(pq);
                 assert.throw(
@@ -172,7 +243,7 @@ describe("PlayQueue", function(){
                     }, /moveToIndex out of bounds/
                 );
             });
-            it("not allow you to move a song in a position greater than the list length", function(){
+            it("should not allow you to move a song in a position greater than the list length", function(){
                 var pq = createNewPlayQueue();
                 addSongs(pq);
                 assert.throw(
@@ -184,4 +255,72 @@ describe("PlayQueue", function(){
         }); // end move
         
     }); // end list
+    
+    describe("controls", function(){
+        it("should play song by index", function(done){
+            var pq = createNewPlayQueue();
+            pq.add(songUrlZero);
+            pq.addEventListener('loading', function(e){
+                assert.equal(e.type, 'loading');
+                assert.equal(e.target.audio.song.url, songUrlZero);
+                done();
+            });
+            pq.play(0);
+        });
+        it("should toggle to paused state with one function call", function(done){
+            var pq = createNewPlayQueue();
+            addSongs(pq);
+            pq.audio.addEventListener('pause', function(e){
+                assert.equal(e.type, 'pause');
+                done();
+            });
+            pq.addEventListener('playing', function(e){
+                pq.playPause();
+            });
+            pq.play(0);
+        });
+        it("should toggle back to un-paused state with one function call", function(done){
+            var pq = createNewPlayQueue();
+            addSongs(pq);
+            pq.addEventListener('playing', function(e){
+                pq.playPause();
+                pq.audio.addEventListener('play', function(e){
+                    assert.equal(e.type, 'play');
+                    done();
+                });
+                pq.playPause();
+            });
+            pq.play(0);
+        });
+        it("should go to next song when next is called", function(done){
+            var pq = createNewPlayQueue();
+            addSongs(pq);
+            pq.addEventListener('playing', function(e){
+                pq.next();
+                done();
+            });
+            pq.play(0);
+        });
+    }); // end controls
+    
+    describe("shuffle", function(){
+        it("should shuffle a list of songs");
+        it("should un-shuffle a list of songs");
+        it("should toggle shuffle on a list of songs with one function call");
+    }); // end shuffle
+    
+     describe("audio", function(){
+        it("should seek to a point in the song by percentage");
+        it("should trigger an event when audio pauses with added properties");
+        it("should trigger an event when audio plays with added properties");
+        it("should trigger an event when audio reaches half point");
+        it("should trigger an event when audio is about to end");
+    }); // end audio
+    
+    describe("localstorage", function(){
+        it("should save the list to localStorage");
+        it("should retrieve the list from localStorage");
+        it("should save the queueNumber to localStorage");
+        it("should retrieve the queueNumber from localStorage");
+    }); // end shuffle
 });
