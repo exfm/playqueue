@@ -53,7 +53,31 @@ describe("PlayQueue", function(){
                 assert.equal(JSON.stringify(pq.getList()), 
                     '[{"url":"'+songUrlZero+'","_listPosition":0}]');
             });
+            it("should fire a 'listChanged' event when refreshed", function(done){
+                var pq = createNewPlayQueue();
+                pq.add(songUrlZero);
+                pq.addEventListener('listChanged', function(e){
+                    assert.equal(e.type, 'listChanged');
+                    done();
+                });
+                pq.refreshList();
+            });
         }); // end main
+        
+        describe("opts", function(){
+            it("should not accept a SoundCloud key unless it's a string", function(){
+                assert.throw(
+                    function(){
+                        new PlayQueue(
+                            {
+                                'audio' : new Audio(),
+                                'soundcloud_key': {}
+                            }
+                        )
+                    }, /soundcloud_key must be a string/
+                );
+            });
+        });
         
         describe("add", function(){
             it("should add an array of song objects to list", function(){
@@ -133,29 +157,29 @@ describe("PlayQueue", function(){
             it("not allow you to move a song to the same position", function(){
                 var pq = createNewPlayQueue();
                 addSongs(pq);
-                try{
-                    pq.move(0, 0);
-                }catch(e){
-                    assert.equal(e.message, "Cannot move item into it's own position");
-                }
+                assert.throw(
+                    (function(){
+                        pq.move(0,0);
+                    }), /Cannot move item into it's own position/
+                );
             });
             it("not allow you to move a song to a position greater than the list length", function(){
                 var pq = createNewPlayQueue();
                 addSongs(pq);
-                try{
-                    pq.move(0, 3);
-                }catch(e){
-                    assert.equal(e.message, "moveToIndex out of bounds");
-                }
+                assert.throw(
+                    function(){
+                        pq.move(0, 100);
+                    }, /moveToIndex out of bounds/
+                );
             });
             it("not allow you to move a song in a position greater than the list length", function(){
                 var pq = createNewPlayQueue();
                 addSongs(pq);
-                try{
-                    pq.move(3, 0);
-                }catch(e){
-                    assert.equal(e.message, "itemIndex out of bounds");
-                }
+                assert.throw(
+                    function(){
+                        pq.move(100, 0);
+                    }, /itemIndex out of bounds/
+                );
             });
         }); // end move
         
