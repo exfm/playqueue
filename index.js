@@ -5,6 +5,71 @@
 // constructor
 function PlayQueue(opts){
     
+    // The list array
+    this.list = [];
+    
+    // Boolean if we should fire 'ended' event manually.
+    // Mobile safari doesn't always fire 'ended' event. This will 
+    // look at the time and fire it manually when it's .1 to end
+    this.notify_before_end = false;
+    
+    // Boolean if calling 'previous' function should start current song
+    // playing again if we are more than 10 seconds in
+    this.smart_previous = true;
+    
+    
+    // Number of milliseconds we should wait before deciding the current
+    // song loading is not going to load and we should call next
+    this.load_timeout = 15000;
+    
+    // Boolean if we should store list, queueNumber 
+    // and shuffled state in localStorage
+    this.use_local_storage = false;
+    
+    // Number of list length cap. -1 means no cap
+    this.lengthCap = -1;
+    
+    // Boolean if we should fire 'songHalf' event at halp point of playing song
+    this.notify_song_half = false;
+
+    // Boolean if we already fired the song half event
+    this.song_half_notified = false;
+
+    // The position of current song in list
+    this.queueNumber = 0;
+
+    // Boolean if the list is shuffled or not
+    this.isShuffled = false;
+
+    // Boolean is the audio is stopped vs. playing/paused
+    this.isStopped = true;
+
+    // Timeout for song load fails
+    this.loadTimeout;
+    
+    // Arrays for event listeners
+    this.listeners = {
+    	'nextTrack' : [],
+    	'previousTrack' : [],
+    	'added' : [],
+    	'playing' : [],
+    	'songHalf' : [],
+    	'loading' : [],
+    	'stop' : [],
+    	'shuffleToggled' : [],
+    	'listChanged' : [],
+    	'play' : [],
+    	'pause' : []
+    };
+    
+    // Which song properties we should save to localStorage
+    this.savedSongProperties = [
+        'id', 'url', 'title',
+        'artist', 'album', 'buy_link',
+        'image', 'source', 'viewer_love',
+        'user_love', '_listPosition'
+    ];
+    
     // soundcloud needs a consumer key to play songs
     if(opts && opts.soundcloud_key){
         if (typeof(opts.soundcloud_key) == "string"){
@@ -52,9 +117,9 @@ function PlayQueue(opts){
         if (typeof(opts.use_local_storage) == "boolean"){
             this.use_local_storage = opts.use_local_storage;
             if (this.use_local_storage == true){
-                _list = _getLocalStorageList().concat([]);
-                _queueNumber = _getLocalStorageQueueNumber();
-                _isShuffled = _getLocalStorageIsShuffled();
+                this.list = this.getLocalStorageList().concat([]);
+                this.queueNumber = this.getLocalStorageQueueNumber();
+                this.isShuffled = this.getLocalStorageIsShuffled();
             }
         } 
         else {
@@ -89,78 +154,6 @@ function PlayQueue(opts){
     } 
     catch(e){}
 }
-
-
-// We need an audio object!
-PlayQueue.prototype.audio = null;
-
-// Soundcloud needs a consumer key to play songs
-PlayQueue.prototype.soundcloud_key = null;
-
-// Boolean if we should fire 'ended' event manually.
-// Mobile safari doesn't always fire 'ended' event. This will 
-// look at the time and fire it manually when it's .1 to end
-PlayQueue.prototype.notify_before_end = false;
-
-
-// Boolean if calling 'previous' function should start current song
-// playing again if we are more than 10 seconds in
-PlayQueue.prototype.smart_previous = true;
-
-// Number of milliseconds we should wait before deciding the current
-// song loading is not going to load and we should call next
-PlayQueue.prototype.load_timeout = 15000;
-
-// Boolean if we should store list, queueNumber 
-// and shuffled state in localStorage
-PlayQueue.prototype.use_local_storage = false;
-
-// Number of list length cap. -1 means no cap
-PlayQueue.prototype.lengthCap = -1;
-
-// Boolean if we should fire 'songHalf' event at halp point of playing song
-PlayQueue.prototype.notify_song_half = false;
-
-// Boolean if we already fired the song half event
-PlayQueue.prototype.song_half_notified = false;
-
-// The list array
-PlayQueue.prototype.list = [];
-
-// The position of current song in list
-PlayQueue.prototype.queueNumber = 0;
-
-// Boolean if the list is shuffled or not
-PlayQueue.prototype.isShuffled = false;
-
-// Boolean is the audio is stopped vs. playing/paused
-PlayQueue.prototype.isStopped = true;
-
-// Timeout for song load fails
-PlayQueue.prototype.loadTimeout;
-
-// Arrays for event listeners
-PlayQueue.prototype.listeners = {
-	'nextTrack' : [],
-	'previousTrack' : [],
-	'added' : [],
-	'playing' : [],
-	'songHalf' : [],
-	'loading' : [],
-	'stop' : [],
-	'shuffleToggled' : [],
-	'listChanged' : [],
-	'play' : [],
-	'pause' : []
-};
-
-// Which song properties we should save to localStorage
-PlayQueue.prototype.savedSongProperties = [
-    'id', 'url', 'title',
-    'artist', 'album', 'buy_link',
-    'image', 'source', 'viewer_love',
-    'user_love', '_listPosition'
-];
 
 // Add listeners to audio object
 PlayQueue.prototype.addAudioListeners = function(){
@@ -269,7 +262,10 @@ PlayQueue.prototype.add = function(songs){
         this.queueNumber, 
         added, 
         [], 
-        currentListLen, currentListLen, newList.length);
+        currentListLen, 
+        currentListLen, 
+        newList.length
+    );
 }
 
 // remove a song from the list by index
@@ -289,7 +285,7 @@ PlayQueue.prototype.remove = function(n){
             this.queueNumber--;
         }
         var len = this.getList().length;
-        this.updateListPositions.apply(removed[0]._listPosition);
+        this.updateListPositions(removed[0]._listPosition);
         var newList = this.getList();
         this.dispatchListChanged(newList, this.queueNumber, [], removed, null, currentListLen, newList.length);
         returnValue = n;
@@ -641,7 +637,7 @@ PlayQueue.prototype.unShuffleList = function(){
     if (len > 0){
         var newList = [];
         for (var i = 0; i < len; i++){
-            var song = _list[i];
+            var song = getList()[i];
             newList[song._listPosition] = song;
         }
         this.queueNumber = this.getSong()._listPosition;
@@ -650,7 +646,7 @@ PlayQueue.prototype.unShuffleList = function(){
     this.isShuffled = false;
     this.dispatchListChanged(
         this.getList(), 
-        _queueNumber, 
+        this.queueNumber, 
         [], 
         [], 
         null, 

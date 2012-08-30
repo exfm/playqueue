@@ -198,8 +198,8 @@ describe("PlayQueue", function(){
                 pq.clear();
                 assert.equal(pq.getList().length, 0);
                 assert.equal(pq.getQueueNumber(), 0);
-                assert.equal(pq.isShuffled(), false);
-                assert.equal(pq.isStopped(), true);
+                assert.equal(pq.isShuffled, false);
+                assert.equal(pq.isStopped, true);
             });
         }); // end remove
         
