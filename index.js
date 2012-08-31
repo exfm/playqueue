@@ -13,6 +13,9 @@ function PlayQueue(opts){
     // look at the time and fire it manually when it's .1 to end
     this.notify_before_end = false;
     
+    // Boolean if we already fired the fake 'ended' event
+    this.before_end_notified = false;
+    
     // Boolean if calling 'previous' function should start current song
     // playing again if we are more than 10 seconds in
     this.smart_previous = true;
@@ -370,6 +373,7 @@ PlayQueue.prototype.play = function(n){
         clearTimeout(this.loadTimeout);
         this.isStopped = false;
         this.song_half_notified = false;
+        this.before_end_notified = false;
         this.queueNumber = n;
         var song = this.getSong();
         this.dispatchEvent("loading", 
@@ -466,11 +470,17 @@ PlayQueue.prototype.timeUpdate = function(){
     if(this.notify_before_end == true 
         && this.audio.duration > 0 
         && this.audio.duration - this.audio.currentTime < .5
+        && this.before_end_notified == false
     ){
-        this.next();
+        this.before_end_notified = true;
+        this.next(
+            {
+                'type': "ended"
+            }
+        );
     }
     if(this.notify_song_half == true 
-        && _song_half_notified == false 
+        && this.song_half_notified == false 
         && this.audio.currentTime / this.audio.duration > .5
     ){
         this.song_half_notified = true;
@@ -508,7 +518,7 @@ PlayQueue.prototype.next = function(e){
         );
     } 
     else{
-        if (typeof(e) != "undefined"){
+        if (e && e.type === 'ended'){
             this.stop();
         } 
     }
@@ -731,6 +741,7 @@ PlayQueue.prototype.getSongAt = function(position){
 }
 
 // Seek audio by percentage of song
+// Percentage range = 0-1
 PlayQueue.prototype.seek = function(percentage){
     if (!isNaN(this.audio.duration)){
         this.audio.currentTime = Math.floor(percentage * this.audio.duration);

@@ -5,14 +5,12 @@ var songUrlOne = 'music/test1.mp3';
 var songUrlTwo = 'music/test2.mp3';
 var songUrlThree = 'music/test3.mp3';
     
-function createNewPlayQueue(){
+function createNewPlayQueue(opts){
     var a = new Audio();
     a.volume = 0;
-    var pq = new PlayQueue(
-        {
-            'audio': a
-        }
-    );
+    opts = opts || {};
+    opts.audio = a;
+    var pq = new PlayQueue(opts);
     return pq;
 }
 
@@ -344,11 +342,85 @@ describe("PlayQueue", function(){
     }); // end shuffle
     
      describe("audio", function(){
-        it("should seek to a point in the song by percentage");
-        it("should trigger an event when audio pauses with added properties");
-        it("should trigger an event when audio plays with added properties");
-        it("should trigger an event when audio reaches half point");
-        it("should trigger an event when audio is about to end");
+        it("should seek to a point in the song by percentage", function(done){
+            var pq = createNewPlayQueue();
+            addSongs(pq);
+            pq.addEventListener('playing', function(e){
+                pq.seek(.5);
+                assert.operator(pq.audio.currentTime, '>', pq.audio.duration / 2 - 1, 'Seek');
+                done();
+            });
+            pq.play(0);
+        });
+        it("should trigger an event when audio pauses with added properties", function(done){
+            var pq = createNewPlayQueue();
+            addSongs(pq);
+            pq.addEventListener('pause', function(e){
+                assert.equal(e.type, 'pause');
+                assert.isObject(e.target.audio, 'target.audio is an object');
+                assert.isNumber(e.target.queueNumber, 'target.queueNumber is an number');
+                assert.isObject(e.target.song, 'target.song is an object');
+                done();
+            });
+            pq.addEventListener('playing', function(e){
+                 pq.audio.pause();
+            });
+            pq.play(0);
+        });
+        it("should trigger an event when audio plays with added properties", function(done){
+            var pq = createNewPlayQueue();
+            addSongs(pq);
+            pq.addEventListener('play', function(e){
+                assert.equal(e.type, 'play');
+                assert.isObject(e.target.audio, 'target.audio is an object');
+                assert.isNumber(e.target.queueNumber, 'target.queueNumber is an number');
+                assert.isObject(e.target.song, 'target.song is an object');
+                done();
+            });
+            pq.addEventListener('playing', function(e){
+                 pq.audio.pause();
+                 pq.audio.play();
+            });
+            pq.play(0);
+        });
+        it("should trigger an event when audio reaches half point", function(done){
+            this.timeout(6000);
+            var pq = createNewPlayQueue(
+                {
+                    'notify_song_half': true
+                }
+            );
+            addSongs(pq);
+            pq.addEventListener('songHalf', function(e){
+                assert.equal(e.type, 'songHalf');
+                assert.isNumber(e.target.queueNumber, 'target.queueNumber is an number');
+                assert.isObject(e.target.song, 'target.song is an object');
+                done();
+            });
+            pq.addEventListener('playing', function(e){
+                pq.seek(.4);
+            });
+            pq.play(0);
+        });
+        it("should trigger an event when audio is about to end", function(done){
+            this.timeout(6000);
+            var pq = createNewPlayQueue(
+                {
+                    'notify_before_end': true
+                }
+            );
+            addSongs(pq);
+            pq.addEventListener('playing', function(e){
+                pq.seek(.8);
+                pq.addEventListener('playing', function(e){
+                    assert.equal(e.target.queueNumber, 1);
+                    assert.equal(e.target.song.url, songUrlOne);
+                    pq.audio.pause();
+                    done();
+                });
+            });
+            pq.play(0);
+        });
     }); // end audio
     
     describe("localstorage", function(){
