@@ -423,10 +423,94 @@ describe("PlayQueue", function(){
         });
     }); // end audio
     
-    describe("localstorage", function(){
-        it("should save the list to localStorage");
-        it("should retrieve the list from localStorage");
-        it("should save the queueNumber to localStorage");
-        it("should retrieve the queueNumber from localStorage");
-    }); // end shuffle
+    describe("localStorage", function(){
+        localStorage.clear();
+        it("should save the list to localStorage", function(){
+            var pq = createNewPlayQueue(
+                {
+                    'use_local_storage': true
+                }
+            );
+            addSongs(pq);
+            var l = localStorage.getItem("exPlayQueue_list");
+            assert.isNotNull(l, 'exPlayQueue_list exists in localStorage');
+            assert.isString(l, 'exPlayQueue_list is a string');
+            assert.isArray(JSON.parse(l), 'exPlayQueue_list is a json array');
+        });
+        it("should retrieve the list from localStorage", function(){
+            localStorage.clear();
+            var pq = createNewPlayQueue(
+                {
+                    'use_local_storage': true
+                }
+            );
+            addSongs(pq);
+            var pq2 = createNewPlayQueue(
+                {
+                    'use_local_storage': true
+                }
+            );
+            assert.equal(pq2.getList().length, 4);
+        });
+        it("should save the queueNumber to localStorage", function(){
+            localStorage.clear();
+            var pq = createNewPlayQueue(
+                {
+                    'use_local_storage': true
+                }
+            );
+            addSongs(pq);
+            pq.play(3);
+            var n = localStorage.getItem("exPlayQueue_queueNumber");
+            assert.isNotNull(n, 'exPlayQueue_queueNumber exists in localStorage');
+            assert.isString(n, 'exPlayQueue_queueNumber is a string');
+            assert.isNumber(JSON.parse(n), 'exPlayQueue_queueNumber is a number');
+        });
+        it("should retrieve the queueNumber from localStorage", function(){
+            localStorage.clear();
+            var pq = createNewPlayQueue(
+                {
+                    'use_local_storage': true
+                }
+            );
+            addSongs(pq);
+            pq.play(3);
+            var pq2 = createNewPlayQueue(
+                {
+                    'use_local_storage': true
+                }
+            );
+            assert.equal(pq2.getQueueNumber(), 3);
+        });
+        it("should save the shuffled state to localStorage", function(){
+            localStorage.clear();
+            var pq = createNewPlayQueue(
+                {
+                    'use_local_storage': true
+                }
+            );
+            addSongs(pq);
+            pq.setShuffled(true);
+            var s = localStorage.getItem("exPlayQueue_isShuffled");
+            assert.isNotNull(s, 'exPlayQueue_isShuffled exists in localStorage');
+            assert.isString(s, 'exPlayQueue_isShuffled is a string');
+            assert.isBoolean(JSON.parse(s), 'exPlayQueue_isShuffled is a boolean');
+        });
+        it("should retrieve the shuffled state from localStorage", function(){
+            localStorage.clear();
+            var pq = createNewPlayQueue(
+                {
+                    'use_local_storage': true
+                }
+            );
+            addSongs(pq);
+            pq.setShuffled(true);
+            var pq2 = createNewPlayQueue(
+                {
+                    'use_local_storage': true
+                }
+            );
+            assert.equal(pq2.isShuffled, true);
+        });
+    }); // end localStorage
 });

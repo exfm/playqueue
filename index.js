@@ -205,6 +205,15 @@ PlayQueue.prototype.getLocalStorageQueueNumber = function(){
     return 0;
 }
 
+// return the shufled state position stored in localStorage
+PlayQueue.prototype.getLocalStorageIsShuffled = function(){
+    var n = localStorage.getItem("exPlayQueue_isShuffled");
+    if (n){
+        return JSON.parse(n);
+    }
+    return false;
+}
+
 // get the current song
 PlayQueue.prototype.getSong = function(){
     return this.getList()[this.queueNumber] || null;
