@@ -52,17 +52,17 @@ function PlayQueue(opts){
     
     // Arrays for event listeners
     this.listeners = {
-    	'nextTrack' : [],
-    	'previousTrack' : [],
-    	'added' : [],
-    	'playing' : [],
-    	'songHalf' : [],
-    	'loading' : [],
-    	'stop' : [],
-    	'shuffleToggled' : [],
-    	'listChanged' : [],
-    	'play' : [],
-    	'pause' : []
+        'nextTrack' : [],
+        'previousTrack' : [],
+        'added' : [],
+        'playing' : [],
+        'songHalf' : [],
+        'loading' : [],
+        'stop' : [],
+        'shuffleToggled' : [],
+        'listChanged' : [],
+        'play' : [],
+        'pause' : []
     };
     
     // Which song properties we should save to localStorage
@@ -149,32 +149,68 @@ function PlayQueue(opts){
         return;
     }
     
-    this.addEventListener("listChanged", this.saveLocally.bind(this), false);
+    this.addEventListener(
+        "listChanged", 
+        this.saveLocally.bind(this), 
+        false
+    );
     try{ 
-        window.addEventListener("storage", function(e){
-            this.onStorageChange(e);
-        }, false);
+        window.addEventListener(
+            "storage", 
+            function(e){
+                this.onStorageChange(e);
+            }, 
+            false
+        );
     } 
     catch(e){}
 }
 
 // Add listeners to audio object
 PlayQueue.prototype.addAudioListeners = function(){
-    this.audio.addEventListener('canplay', this.canPlay.bind(this), false);
+    this.audio.addEventListener(
+        'canplay', 
+        this.canPlay.bind(this), 
+        false
+    );
     var bindedTimeUpdate = false;
     if(this.notify_before_end == true){
-        this.audio.addEventListener('timeupdate', this.timeUpdate.bind(this), false);
+        this.audio.addEventListener(
+            'timeupdate', 
+            this.timeUpdate.bind(this), 
+            false
+        );
         bindedTimeUpdate = true;
     } 
     else{
-        this.audio.addEventListener('ended', this.next.bind(this), false);
+        this.audio.addEventListener(
+            'ended', 
+            this.next.bind(this), 
+            false
+        );
     }
     if(this.notify_song_half == true && bindedTimeUpdate == false){
-        this.audio.addEventListener('timeupdate', this.timeUpdate.bind(this), false);
+        this.audio.addEventListener(
+            'timeupdate', 
+            this.timeUpdate.bind(this), 
+            false
+        );
     }
-    this.audio.addEventListener('error', this.next, false);
-    this.audio.addEventListener('play', this.audioOnPlay.bind(this), false);
-    this.audio.addEventListener('pause', this.audioOnPause.bind(this), false);
+    this.audio.addEventListener(
+        'error', 
+        this.next, 
+        false
+    );
+    this.audio.addEventListener(
+        'play', 
+        this.audioOnPlay.bind(this), 
+        false
+    );
+    this.audio.addEventListener(
+        'pause', 
+        this.audioOnPause.bind(this), 
+        false
+    );
 }
 
 // return the list of songs
@@ -223,7 +259,8 @@ PlayQueue.prototype.getSong = function(){
 PlayQueue.prototype.getSavedSong = function(song){
     var newSong = {};
     for(var prop in this.savedSongProperties){
-        newSong[this.savedSongProperties[prop]] = song[this.savedSongProperties[prop]];
+        newSong[this.savedSongProperties[prop]] 
+            = song[this.savedSongProperties[prop]];
     }
     return newSong;
 }
@@ -299,7 +336,15 @@ PlayQueue.prototype.remove = function(n){
         var len = this.getList().length;
         this.updateListPositions(removed[0]._listPosition);
         var newList = this.getList();
-        this.dispatchListChanged(newList, this.queueNumber, [], removed, null, currentListLen, newList.length);
+        this.dispatchListChanged(
+            newList, 
+            this.queueNumber, 
+            [], 
+            removed, 
+            null, 
+            currentListLen, 
+            newList.length
+        );
         returnValue = n;
     }
     return returnValue;
@@ -312,7 +357,15 @@ PlayQueue.prototype.clear = function(){
     this.queueNumber = 0;
     this.setShuffled(false);
     this.stop();
-    this.dispatchListChanged([], this.queueNumber, [], removed, null, 0, 0);
+    this.dispatchListChanged(
+        [], 
+        this.queueNumber, 
+        [], 
+        removed, 
+        null, 
+        0, 
+        0
+    );
 }
 
 // move a song from one psoition to another
@@ -355,7 +408,8 @@ PlayQueue.prototype.move = function(itemIndex, moveToIndex){
     );
 }
 
-// after the list was manipulated, update the _listPosition property on each song
+// after the list was manipulated, 
+// update the _listPosition property on each song
 PlayQueue.prototype.updateListPositions = function(n){
     var len = this.getList().length;
     if(len > 0){
@@ -616,7 +670,8 @@ PlayQueue.prototype.shuffleList = function(start){
     if (len > 0){
         var playingSongPosition = this.getSong()._listPosition;
         start = start || 0;
-        var toShuffle = this.getList().splice(start, this.getList().length - start);  
+        var toShuffle = this.getList()
+            .splice(start, this.getList().length - start);  
         this.shuffle(toShuffle);
         var first = this.getList().splice(0, start);
         var newList = first.concat(toShuffle);
@@ -690,7 +745,10 @@ PlayQueue.prototype.unShuffleList = function(){
 //+ Jonas Raoni Soares Silva
 //@ http://jsfromhell.com/array/shuffle [v1.0]
 PlayQueue.prototype.shuffle = function(o){
-    for(var j, x, i = o.length; i; j = parseInt(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+    for(var j, x, i = o.length; i; j = parseInt(Math.random() * i), 
+        x = o[--i], o[i] = o[j], 
+        o[j] = x
+    );
     return o;
 }
 
@@ -794,39 +852,39 @@ PlayQueue.prototype.onStorageChange = function(e){
 // Event emitter add
 PlayQueue.prototype.addEventListener = function(eventName, callback, b){
     for(var i in this.listeners){
-		if(eventName == i){
-			this.listeners[i].push(callback);
-			break;
-		};
-	};
+        if(eventName == i){
+            this.listeners[i].push(callback);
+            break;
+        };
+    };
 };
 
 // Event emitter remove
 PlayQueue.prototype.removeEventListener = function(type, fn){
-	if(typeof this.listeners[type] != 'undefined') {
-		for(var i = 0, l; l = this.listeners[type][i]; i++) {
-	    	if (l == fn) break;
-	    }
-	this.listeners[type].splice(i, 1);
-	}
+    if(typeof this.listeners[type] != 'undefined') {
+        for(var i = 0, l; l = this.listeners[type][i]; i++) {
+            if (l == fn) break;
+        }
+        this.listeners[type].splice(i, 1);
+    }
 };
 
 // Event emitter trigger
 PlayQueue.prototype.dispatchEvent = function(type, object){
-	if(typeof this.listeners[type] != 'undefined' && this.listeners[type].length) {
-		var array = this.listeners[type].slice();
-    	for (var i = 0, l; l = array[i]; i++) {
-    		var timeStamp = new Date().getTime();
-    		l.apply(object, [
-    		  {
-    		      'type': type, 
-    		      'timeStamp': timeStamp, 
-    		      'target': object
-    		  }
+    if(typeof this.listeners[type] != 'undefined' && this.listeners[type].length) {
+        var array = this.listeners[type].slice();
+        for (var i = 0, l; l = array[i]; i++) {
+            var timeStamp = new Date().getTime();
+            l.apply(object, [
+                {
+                    'type': type, 
+                    'timeStamp': timeStamp, 
+                    'target': object
+                }
             ]);
-   		 }
-    	return true;           
-	}
+        }
+        return true;           
+    }
     return false;
 };
     
