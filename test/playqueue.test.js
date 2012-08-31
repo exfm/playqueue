@@ -304,9 +304,43 @@ describe("PlayQueue", function(){
     }); // end controls
     
     describe("shuffle", function(){
-        it("should shuffle a list of songs");
-        it("should un-shuffle a list of songs");
-        it("should toggle shuffle on a list of songs with one function call");
+        it("should shuffle a list of songs", function(){
+            var pq = createNewPlayQueue();
+            addSongs(pq);
+            pq.setShuffled(true);
+            assert.equal(pq.isShuffled, true);
+            assert.equal(pq.getList()[0].url, songUrlZero);
+        });
+        it("should shuffle a list of songs starting at index 2", function(){
+            var pq = createNewPlayQueue();
+            addSongs(pq);
+            pq.setShuffled(true, 2);
+            assert.equal(pq.isShuffled, true);
+            assert.equal(pq.getList()[0].url, songUrlZero);
+             assert.equal(pq.getList()[1].url, songUrlOne);
+        });
+        it("should un-shuffle a list of songs", function(){
+            var pq = createNewPlayQueue();
+            addSongs(pq);
+            pq.setShuffled(false);
+            assert.equal(pq.isShuffled, false);
+            assert.equal(pq.getList()[0].url, songUrlZero);
+            assert.equal(pq.getList()[1].url, songUrlOne);
+            assert.equal(pq.getList()[2].url, songUrlTwo);
+            assert.equal(pq.getList()[3].url, songUrlThree);
+        });
+        it("should toggle shuffle on a list of songs with one function call", function(){
+            var pq = createNewPlayQueue();
+            addSongs(pq);
+            pq.toggleShuffle();
+            assert.equal(pq.isShuffled, true);
+            pq.toggleShuffle();
+            assert.equal(pq.isShuffled, false);
+            assert.equal(pq.getList()[0].url, songUrlZero);
+            assert.equal(pq.getList()[1].url, songUrlOne);
+            assert.equal(pq.getList()[2].url, songUrlTwo);
+            assert.equal(pq.getList()[3].url, songUrlThree);
+        });
     }); // end shuffle
     
      describe("audio", function(){

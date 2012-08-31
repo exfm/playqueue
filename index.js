@@ -595,20 +595,24 @@ PlayQueue.prototype.toggleShuffle = function(start){
 PlayQueue.prototype.shuffleList = function(start){
     var len = this.getList().length;
     if (len > 0){
-        var playingSongPosition = this.getList()[this.queueNumber]._listPosition;
+        var playingSongPosition = this.getSong()._listPosition;
         start = start || 0;
         var toShuffle = this.getList().splice(start, this.getList().length - start);  
         this.shuffle(toShuffle);
         var first = this.getList().splice(0, start);
         var newList = first.concat(toShuffle);
-        for (var i = 0; i < len; i++){
-            var song = newList[i];
-            if (song._listPosition == playingSongPosition){
-                newList.splice(i, 1);
-                newList.splice(start, 0, song);
+        var newListLen = newList.length;
+        if(playingSongPosition >= start){
+            for(var i = 0; i < newListLen; i++){
+                var song = newList[i];
+                if(song._listPosition === playingSongPosition){
+                    newList.splice(i, 1);
+                    newList.splice(start, 0, song);
+                    break;
+                }
             }
         }
-        this.getList() = newList.concat([]);
+        this.list = newList.concat([]);
         this.queueNumber = start;
     }
     this.isShuffled = true;
@@ -637,11 +641,11 @@ PlayQueue.prototype.unShuffleList = function(){
     if (len > 0){
         var newList = [];
         for (var i = 0; i < len; i++){
-            var song = getList()[i];
+            var song = this.getList()[i];
             newList[song._listPosition] = song;
         }
         this.queueNumber = this.getSong()._listPosition;
-        this.getList() = newList.concat([]);
+        this.list = newList.concat([]);
     }
     this.isShuffled = false;
     this.dispatchListChanged(
