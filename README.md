@@ -18,9 +18,6 @@ provide functionality such as
 
 ## Usage
 
-@todo (dan)
-
-
     var PlayQueue = require('playqueue'),
         pq = new PlayQueue({'audio': new Audio()});
     
