@@ -21,6 +21,6 @@ provide functionality such as
     var PlayQueue = require('playqueue'),
         pq = new PlayQueue({'audio': new Audio()});
     
-    pq.add(['url', 'url2']);
+    pq.add('url');
     pq.play(0);
     pq.addEventListener('songHalf', function(e){...})
