@@ -439,13 +439,6 @@ PlayQueue.prototype.play = function(n){
         this.before_end_notified = false;
         this.queueNumber = n;
         var song = this.getSong();
-        this.dispatchEvent("loading", 
-            {
-                'song': song, 
-                'queueNumber': this.queueNumber, 
-                'audio': this.getAudioProperties()
-            }
-        );
         var url = song.url;
         if(this.soundcloud_key != null){
             if(url.indexOf("soundcloud.com") != -1){
@@ -459,6 +452,13 @@ PlayQueue.prototype.play = function(n){
         }
         this.audio.src = url;
         this.audio.load();
+        this.dispatchEvent("loading", 
+            {
+                'song': song, 
+                'queueNumber': this.queueNumber, 
+                'audio': this.getAudioProperties()
+            }
+        );
         if(this.load_timeout != -1){
             this.loadTimeout = setTimeout(
                 this.timeoutLoading.bind(this), 
