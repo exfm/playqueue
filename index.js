@@ -198,7 +198,7 @@ PlayQueue.prototype.addAudioListeners = function(){
     }
     this.audio.addEventListener(
         'error', 
-        this.next, 
+        this.next.bind(this), 
         false
     );
     this.audio.addEventListener(
