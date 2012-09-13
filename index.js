@@ -500,7 +500,7 @@ PlayQueue.prototype.play = function(n){
 // If stopped, will start playing first song
 PlayQueue.prototype.playPause = function(){
     if(this.isStopped){
-        if(this.getList()[_queueNumber]){
+        if(this.getList()[this.queueNumber]){
             this.play(this.queueNumber);
         }
     } 
