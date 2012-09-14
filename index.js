@@ -20,6 +20,10 @@ function PlayQueue(opts){
     // playing again if we are more than 10 seconds in
     this.smart_previous = true;
     
+    // Boolean if we should automatically go to next song when current
+    // song ends. Good to set to false if client goes offline so it 
+    // doesn't skip through all songs
+    this.autoNext = true;
     
     // Number of milliseconds we should wait before deciding the current
     // song loading is not going to load and we should call next
@@ -570,21 +574,35 @@ PlayQueue.prototype.timeoutLoading = function(){
 // Called automatically when a song ends
 // If there are no more songs in the list, calles stop
 PlayQueue.prototype.next = function(e){
-    if(this.queueNumber < this.getList().length - 1){
-        this.queueNumber++;
-        this.play(this.queueNumber);
-        this.dispatchEvent('nextTrack', 
-            {
-                'song': this.getSong(), 
-                'queueNumber': this.queueNumber
-            }
-        );
-    } 
-    else{
-        if (e && e.type === 'ended'){
+    // not user initiated
+    if(e && e.type === 'ended'){
+        if(this.queueNumber < this.getList().length - 1
+            && this.autoNext === true){
+            this._goNext();
+        }
+        else{
             this.stop();
         } 
     }
+    // user initiated
+    else{
+        if(this.queueNumber < this.getList().length - 1){
+            this._goNext();
+        }
+    }
+}
+
+// actually skip to the next song
+PlayQueue.prototype._goNext = function(e){
+    this.queueNumber++;
+    this.play(this.queueNumber);
+    this.dispatchEvent(
+        'nextTrack', 
+        {
+            'song': this.getSong(), 
+            'queueNumber': this.queueNumber
+        }
+    );
 }
 
 // This is called to go to the previous song in the list
