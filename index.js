@@ -621,7 +621,7 @@ PlayQueue.prototype._goNext = function(e){
 PlayQueue.prototype.previous = function(){
     if(this.smart_previous == true){
         if(this.audio.currentTime > 10){
-            this.play(this.queueNumber);
+            this.audio.currentTime = 0;
         } 
         else {
             if(this.queueNumber > 0){
