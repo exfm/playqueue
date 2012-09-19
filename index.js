@@ -215,6 +215,16 @@ PlayQueue.prototype.addAudioListeners = function(){
         this.audioOnPause.bind(this), 
         false
     );
+    this.audio.addEventListener(
+        'remoteprevious', 
+        this.previous.bind(this), 
+        false
+    );
+    this.audio.addEventListener(
+        'remotenext', 
+        this.next.bind(this), 
+        false
+    );
 }
 
 // return the list of songs
