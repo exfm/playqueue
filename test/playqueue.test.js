@@ -424,8 +424,8 @@ describe("PlayQueue", function(){
     }); // end audio
     
     describe("localStorage", function(){
-        localStorage.clear();
         it("should save the list to localStorage", function(){
+            localStorage.clear();
             var pq = createNewPlayQueue(
                 {
                     'use_local_storage': true
@@ -511,6 +511,20 @@ describe("PlayQueue", function(){
                 }
             );
             assert.equal(pq2.isShuffled, true);
+        });
+        it("should save the list to localStorage with a custom namespace", function(){
+            localStorage.clear();
+            var pq = createNewPlayQueue(
+                {
+                    'use_local_storage': true
+                }
+            );
+            pq.localStorageNS = "fooLS_";
+            addSongs(pq);
+            var l = localStorage.getItem("fooLS_list");
+            assert.isNotNull(l, 'fooLS_list exists in localStorage');
+            assert.isString(l, 'fooLS_list is a string');
+            assert.isArray(JSON.parse(l), 'fooLS_list is a json array');
         });
     }); // end localStorage
 });

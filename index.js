@@ -54,6 +54,9 @@ function PlayQueue(opts){
     // Timeout for song load fails
     this.loadTimeout;
     
+    // namespace for localStorage
+    this.localStorageNS = 'exPlayQueue_';
+    
     // Arrays for event listeners
     this.listeners = {
         'nextTrack' : [],
@@ -149,7 +152,7 @@ function PlayQueue(opts){
         this.audio = opts.audio;
         this.addAudioListeners();
     } else {
-        throw new TypeError("EXPlayQueue requires an Audio object");
+        throw new TypeError("PlayQueue requires an Audio object");
         return;
     }
     
@@ -234,7 +237,7 @@ PlayQueue.prototype.getList = function(){
 
 // return the list stored in localStorage
 PlayQueue.prototype.getLocalStorageList = function(){
-    var l = localStorage.getItem("exPlayQueue_list");
+    var l = localStorage.getItem(this.localStorageNS+"list");
     if(l){
         return JSON.parse(l);
     }
@@ -248,7 +251,7 @@ PlayQueue.prototype.getQueueNumber = function(){
 
 // return the queue position stored in localStorage
 PlayQueue.prototype.getLocalStorageQueueNumber = function(){
-    var n = localStorage.getItem("exPlayQueue_queueNumber");
+    var n = localStorage.getItem(this.localStorageNS+"queueNumber");
     if(n){
         return JSON.parse(n);
     }
@@ -257,7 +260,7 @@ PlayQueue.prototype.getLocalStorageQueueNumber = function(){
 
 // return the shufled state position stored in localStorage
 PlayQueue.prototype.getLocalStorageIsShuffled = function(){
-    var n = localStorage.getItem("exPlayQueue_isShuffled");
+    var n = localStorage.getItem(this.localStorageNS+"isShuffled");
     if (n){
         return JSON.parse(n);
     }
@@ -282,9 +285,9 @@ PlayQueue.prototype.getSavedSong = function(song){
 // Save the list, queueNumber and shuffled state to localStorage
 PlayQueue.prototype.saveLocally = function(){
     if (this.use_local_storage == true){
-        localStorage.setItem('exPlayQueue_list', JSON.stringify(this.getList()));
-        localStorage.setItem('exPlayQueue_queueNumber', this.queueNumber);
-        localStorage.setItem('exPlayQueue_isShuffled', this.isShuffled);
+        localStorage.setItem(this.localStorageNS+'list', JSON.stringify(this.getList()));
+        localStorage.setItem(this.localStorageNS+'queueNumber', this.queueNumber);
+        localStorage.setItem(this.localStorageNS+'isShuffled', this.isShuffled);
     }
 }
 
@@ -480,7 +483,7 @@ PlayQueue.prototype.play = function(n){
             );
         }
         if(this.use_local_storage == true){
-            localStorage.setItem("exPlayQueue_queueNumber", this.queueNumber);
+            localStorage.setItem(this.localStorageNS+"queueNumber", this.queueNumber);
         }
         if(this.length_cap != -1){
             if(this.getList().length > this.length_cap){
@@ -869,10 +872,10 @@ PlayQueue.prototype.dispatchListChanged = function(
 
 // storagechange listener
 PlayQueue.prototype.onStorageChange = function(e){
-    if(e.key == 'exPlayQueue_list'){
+    if(e.key == this.localStorageNS+'list'){
         var list = JSON.parse(e.newValue);
     }
-    if(e.key == 'exPlayQueue_queueNumber'){
+    if(e.key == this.localStorageNS+'queueNumber'){
         
     }
 }
