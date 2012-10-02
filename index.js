@@ -77,7 +77,7 @@ function PlayQueue(opts){
         'id', 'url', 'title',
         'artist', 'album', 'buy_link',
         'image', 'source', 'viewer_love',
-        'user_love', '_listPosition'
+        'user_love', '_listPosition', 'context'
     ];
     
     // soundcloud needs a consumer key to play songs

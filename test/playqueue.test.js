@@ -143,7 +143,7 @@ describe("PlayQueue", function(){
                 assert.throw(
                     function(){
                         new PlayQueue()
-                    }, /EXPlayQueue requires an Audio object/
+                    }, /PlayQueue requires an Audio object/
                 );
             });
         }); // end opts
