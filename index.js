@@ -619,13 +619,13 @@ PlayQueue.prototype.next = function(e){
 
 // actually skip to the next song
 PlayQueue.prototype._goNext = function(e){
-    this.queueNumber++;
-    this.play(this.queueNumber);
+    var q = this.queueNumber + 1;
+    this.play(q);
     this.dispatchEvent(
         'nextTrack', 
         {
             'song': this.getSong(), 
-            'queueNumber': this.queueNumber
+            'queueNumber': q
         }
     );
 }
@@ -640,12 +640,12 @@ PlayQueue.prototype.previous = function(){
         } 
         else {
             if(this.queueNumber > 0){
-                this.queueNumber--;
-                this.play(this.queueNumber);
+                var q = this.queueNumber - 1;
+                this.play(q);
                 this.dispatchEvent('previousTrack', 
                     {
                         'song': this.getSong(), 
-                        'queueNumber': this.queueNumber
+                        'queueNumber': q
                     }
                 );
             }
@@ -653,12 +653,12 @@ PlayQueue.prototype.previous = function(){
     } 
     else{
         if(this.queueNumber > 0){
-            this.queueNumber--;
-            this.play(this.queueNumber);
+            var q = this.queueNumber - 1;
+            this.play(q);
             this.dispatchEvent('previousTrack', 
                 {
                     'song': this.getSong(), 
-                    'queueNumber': this.queueNumber
+                    'queueNumber': q
                 }
             );
         }
