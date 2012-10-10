@@ -57,6 +57,10 @@ function PlayQueue(opts){
     // namespace for localStorage
     this.localStorageNS = 'exPlayQueue_';
     
+    // should we first check if client is online before
+    // trying to load a song
+    this.checkOnlineStatus = false;
+    
     // Arrays for event listeners
     this.listeners = {
         'nextTrack' : [],
@@ -449,67 +453,75 @@ PlayQueue.prototype.updateListPositions = function(n){
 
 // play a song at a given index
 PlayQueue.prototype.play = function(n){
-    if(this.getList()[n]){
-        clearTimeout(this.loadTimeout);
-        this.isStopped = false;
-        this.song_half_notified = false;
-        this.before_end_notified = false;
-        this.queueNumber = n;
-        var song = this.getSong();
-        var url = song.url;
-        if(this.soundcloud_key != null){
-            if(url.indexOf("soundcloud.com") != -1){
-                if (url.indexOf("?") == -1){
-                    url = url+"?consumer_key="+this.soundcloud_key;
-                } 
-                else{
-                    url = url+"&consumer_key="+this.soundcloud_key;
+    var shouldLoad = true;
+    if(this.checkOnlineStatus === true){
+        if(navigator.onLine === false){
+            shoudLoad = false;
+        }
+    }
+    if(shouldLoad === true){
+        if(this.getList()[n]){
+            clearTimeout(this.loadTimeout);
+            this.isStopped = false;
+            this.song_half_notified = false;
+            this.before_end_notified = false;
+            this.queueNumber = n;
+            var song = this.getSong();
+            var url = song.url;
+            if(this.soundcloud_key != null){
+                if(url.indexOf("soundcloud.com") != -1){
+                    if (url.indexOf("?") == -1){
+                        url = url+"?consumer_key="+this.soundcloud_key;
+                    } 
+                    else{
+                        url = url+"&consumer_key="+this.soundcloud_key;
+                    }
                 }
             }
-        }
-        this.audio.src = url;
-        this.audio.load();
-        this.dispatchEvent("loading", 
-            {
-                'song': song, 
-                'queueNumber': this.queueNumber, 
-                'audio': this.getAudioProperties()
-            }
-        );
-        if(this.load_timeout != -1){
-            this.loadTimeout = setTimeout(
-                this.timeoutLoading.bind(this), 
-                this.load_timeout
+            this.audio.src = url;
+            this.audio.load();
+            this.dispatchEvent("loading", 
+                {
+                    'song': song, 
+                    'queueNumber': this.queueNumber, 
+                    'audio': this.getAudioProperties()
+                }
             );
-        }
-        if(this.use_local_storage == true){
-            localStorage.setItem(this.localStorageNS+"queueNumber", this.queueNumber);
-        }
-        if(this.length_cap != -1){
-            if(this.getList().length > this.length_cap){
-                var cutNumber = this.getList().length - this.length_cap;
-                if(this.queueNumber < cutNumber){
-                    cutNumber = this.queueNumber - 1;
-                }
-                this.queueNumber -= cutNumber;
-                var currentListLen = this.getList().length; 
-                var removed = this.getList().splice(0, cutNumber);
-                this.updateListPositions(0);
-                this.dispatchListChanged(
-                    this.getList(), 
-                    this.queueNumber, 
-                    [], 
-                    removed, 
-                    null, 
-                    currentListLen, 
-                    this.getList().length
+            if(this.load_timeout != -1){
+                this.loadTimeout = setTimeout(
+                    this.timeoutLoading.bind(this), 
+                    this.load_timeout
                 );
             }
+            if(this.use_local_storage == true){
+                localStorage.setItem(this.localStorageNS+"queueNumber", this.queueNumber);
+            }
+            if(this.length_cap != -1){
+                if(this.getList().length > this.length_cap){
+                    var cutNumber = this.getList().length - this.length_cap;
+                    if(this.queueNumber < cutNumber){
+                        cutNumber = this.queueNumber - 1;
+                    }
+                    this.queueNumber -= cutNumber;
+                    var currentListLen = this.getList().length; 
+                    var removed = this.getList().splice(0, cutNumber);
+                    this.updateListPositions(0);
+                    this.dispatchListChanged(
+                        this.getList(), 
+                        this.queueNumber, 
+                        [], 
+                        removed, 
+                        null, 
+                        currentListLen, 
+                        this.getList().length
+                    );
+                }
+            }
+        } 
+        else {
+            throw new TypeError("Index out of bounds. Got: "
+                +n+" Length: "+this.getList().length);
         }
-    } 
-    else {
-        throw new TypeError("Index out of bounds. Got: "
-            +n+" Length: "+this.getList().length);
     }
 }
 
