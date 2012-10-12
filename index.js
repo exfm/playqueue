@@ -456,7 +456,7 @@ PlayQueue.prototype.play = function(n){
     var shouldLoad = true;
     if(this.checkOnlineStatus === true){
         if(navigator.onLine === false){
-            shoudLoad = false;
+            shouldLoad = false;
         }
     }
     if(shouldLoad === true){
