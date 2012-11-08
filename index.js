@@ -253,6 +253,14 @@ PlayQueue.prototype.getQueueNumber = function(){
     return this.queueNumber || 0;
 }
 
+// set the current queue position
+PlayQueue.prototype.setQueueNumber = function(queueNumber){
+    this.queueNumber = queueNumber;
+    if(this.use_local_storage == true){
+        localStorage.setItem(this.localStorageNS+"queueNumber", this.queueNumber);
+    }
+}
+
 // return the queue position stored in localStorage
 PlayQueue.prototype.getLocalStorageQueueNumber = function(){
     var n = localStorage.getItem(this.localStorageNS+"queueNumber");
