@@ -465,6 +465,12 @@ PlayQueue.prototype.play = function(n){
     if(this.checkOnlineStatus === true){
         if(navigator.onLine === false){
             shouldLoad = false;
+            if(this.getList()[n]){
+                var checkSong = this.getList()[n];
+                if(checkSong.offline && checkSong.offline === true){
+                    shouldLoad = true;
+                }
+            }
         }
     }
     if(shouldLoad === true){
@@ -530,6 +536,9 @@ PlayQueue.prototype.play = function(n){
             throw new TypeError("Index out of bounds. Got: "
                 +n+" Length: "+this.getList().length);
         }
+    }
+    else{
+        this.dispatchEvent('offline');    
     }
 }
 
