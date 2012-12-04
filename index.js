@@ -25,6 +25,10 @@ function PlayQueue(opts){
     // doesn't skip through all songs
     this.autoNext = true;
     
+    // if we are on the last song, user can click next 
+    // and it will skip and fire stop events
+    this.userCanStop = false;
+    
     // Number of milliseconds we should wait before deciding the current
     // song loading is not going to load and we should call next
     this.load_timeout = 15000;
@@ -631,6 +635,11 @@ PlayQueue.prototype.next = function(e){
         if(this.queueNumber < this.getList().length - 1){
             this._goNext();
         }
+        else{
+            if(this.userCanStop === true){
+                this.stop();
+            } 
+        }
     }
 }
 
@@ -686,7 +695,6 @@ PlayQueue.prototype.previous = function(){
 // Reset queueNumber
 PlayQueue.prototype.stop = function(){
     this.isStopped = true;
-    this.queueNumber = 0;
     this.dispatchEvent('stop', 
         {
             'audio': this.getAudioProperties()
