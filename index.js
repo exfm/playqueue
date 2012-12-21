@@ -77,7 +77,8 @@ function PlayQueue(opts){
         'shuffleToggled' : [],
         'listChanged' : [],
         'play' : [],
-        'pause' : []
+        'pause' : [],
+        'error': []
     };
     
     // Which song properties we should save to localStorage
@@ -213,7 +214,7 @@ PlayQueue.prototype.addAudioListeners = function(){
     }
     this.audio.addEventListener(
         'error', 
-        this.next.bind(this), 
+        this.error.bind(this), 
         false
     );
     this.audio.addEventListener(
@@ -577,6 +578,23 @@ PlayQueue.prototype.canPlay = function(){
     );
 }
 
+// Fires 'error' event song cannot load or has timed out 
+// Then calls nexy
+PlayQueue.prototype.error = function(){
+    this.dispatchEvent("error", 
+        {
+            'song': this.getSong(), 
+            'queueNumber': this.queueNumber,  
+            'audio': this.getAudioProperties()
+        }
+    );
+    this.next(
+        {
+            'type': "ended"
+        }
+    );
+}
+
 // Listener on audio timeupdate
 // Handles notify_before_end and notify_song_half
 PlayQueue.prototype.timeUpdate = function(){
@@ -611,7 +629,7 @@ PlayQueue.prototype.timeUpdate = function(){
 PlayQueue.prototype.timeoutLoading = function(){
     if(this.audio.paused == false){
         if(this.audio.currentTime < 1){
-            this.next();
+            this.error();
         }
     }
 }
