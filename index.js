@@ -627,10 +627,8 @@ PlayQueue.prototype.timeUpdate = function(){
 // This is called when loadTimeout is reached
 // If song has not started, next is called
 PlayQueue.prototype.timeoutLoading = function(){
-    if(this.audio.paused == false){
-        if(this.audio.currentTime < 1){
-            this.error();
-        }
+    if(this.audio.currentTime < 1){
+        this.error();
     }
 }
 
