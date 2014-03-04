@@ -2,7 +2,7 @@
   "author": "Dan Kantor <dan@ex.fm> (http://dankantor.com)",
   "name": "playqueue",
   "description": "The last play queue dan will ever write.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "homepage": "http://github.com/exfm/playqueue",
   "repository": {
     "type": "git",
