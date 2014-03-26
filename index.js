@@ -1,7 +1,14 @@
 (function(){
 
-var storage = require('local-storage-json'),
-    _ = require('underscore');
+if(typeof module !== "undefined"){
+    var storage = require('local-storage-json'),
+        _ = require('underscore');
+}
+else{
+    console.error('underscore and local-storage-json modules must exist');
+}
+
+
 
 // constructor
 function PlayQueue(opts){
