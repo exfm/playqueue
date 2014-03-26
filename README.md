@@ -23,4 +23,4 @@ provide functionality such as
     
     pq.add('url');
     pq.play(0);
-    pq.addEventListener('songHalf', function(e){...})
+    pq.on('songHalf', fn);
