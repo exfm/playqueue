@@ -1,7 +1,7 @@
+(function(){
+
 var storage = require('local-storage-json'),
     _ = require('underscore');
-
-(function(){
 
 // constructor
 function PlayQueue(opts){
