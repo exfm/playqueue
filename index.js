@@ -539,7 +539,7 @@ PlayQueue.prototype.cut = function(){
 // if url is from soundcloud
 // add soundcloud key if we have one
 PlayQueue.prototype.checkForSoundcloudUrl = function(url){
-    if(this.soundcloud_key !== null){
+    if(this.soundcloud_key){
         if(url.indexOf("soundcloud.com") !== -1){
             if (url.indexOf("?") === -1){
                 url = url+"?consumer_key="+this.soundcloud_key;
