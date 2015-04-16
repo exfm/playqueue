@@ -95,7 +95,8 @@ function PlayQueue(opts){
         'listChanged' : [],
         'play' : [],
         'pause' : [],
-        'error': []
+        'error': [],
+        'preloading': []
     };
     
      // Which song properties do we need?
@@ -460,6 +461,12 @@ PlayQueue.prototype.play = function(n){
     var list = this.getList();
     var proposedSong = list[n];
     if(proposedSong){
+        this.dispatchEvent(
+            'preloading', 
+            {
+                'song': proposedSong
+            }
+        );
         if(this.validatePlayFunction !== null){
             this.validatePlayFunction(proposedSong).then(
                 function(song){
@@ -580,7 +587,7 @@ PlayQueue.prototype.checkOnlineStatusShouldLoad = function(song){
 // This will toggle paused state of audio. 
 // If stopped, will start playing first song
 PlayQueue.prototype.playPause = function(){
-    if(this.isStopped){
+    if(this.isStopped === true){
         if(this.getSong() !== null){
             this.play(this.getQueueNumber());
         }
