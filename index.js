@@ -73,8 +73,8 @@ function PlayQueue(opts){
     // trying to load a song
     this.checkOnlineStatus = false;
     
-    // if not null, this func must return true
-    // to play a song
+    // if not null, this func must return a promise
+    // the promise must return a song object
     this.validatePlayFunction = null;
     
     // should we first check the connection type
@@ -457,53 +457,59 @@ PlayQueue.prototype.updateListPositions = function(n){
 // play a song at a given index
 PlayQueue.prototype.play = function(n){
     this.canPlayCalled = false;
-    var shouldPlay = true;
     var list = this.getList();
     var proposedSong = list[n];
-    var isSong = _.isObject(proposedSong);
-    if(this.validatePlayFunction !== null){
-        shouldPlay = this.validatePlayFunction(proposedSong);
-    }
-    if(shouldPlay === true){
-        var shouldLoad = this.checkOnlineStatusShouldLoad(proposedSong, isSong);
-        if(shouldLoad === true){
-            if(isSong === true){
-                clearTimeout(this.loadTimeout);
-                this.isStopped = false;
-                this.song_half_notified = false;
-                this.before_end_notified = false;
-                var song = proposedSong;
-                var url = this.checkForSoundcloudUrl(song.url);
-                this.setQueueNumber(n);
-                this.audio.src = url;
-                this.audio.load();
-                this.dispatchEvent(
-                    'loading', 
-                    {
-                        'song': song, 
-                        'queueNumber': this.getQueueNumber(), 
-                        'audio': this.getAudioProperties()
-                    }
-                );
-                if(this.load_timeout !== -1){
-                    this.loadTimeout = setTimeout(
-                        this.timeoutLoading.bind(this), 
-                        this.load_timeout
-                    );
-                }
-                this.cut();
-            } 
-            else {
-                throw new TypeError("Index out of bounds. Got: "
-                    + n + " Length: "+ list.length);
-            }
+    if(proposedSong){
+        if(this.validatePlayFunction !== null){
+            this.validatePlayFunction(proposedSong).then(
+                function(song){
+                    this._play(song, n);
+                }.bind(this),
+                function(e){
+                    this.dispatchEvent('validatePlayFunctionFalse', e);
+                }.bind(this)
+            )
         }
         else{
-            this.dispatchEvent('offline');    
+            this._play(proposedSong, n);
         }
+    } 
+    else {
+        throw new TypeError("Index out of bounds. Got: "
+            + n + " Length: "+ list.length);
+    }
+}
+
+// play the song
+PlayQueue.prototype._play = function(song, n){
+    var shouldLoad = this.checkOnlineStatusShouldLoad(song);
+    if(shouldLoad === true){
+        clearTimeout(this.loadTimeout);
+        this.isStopped = false;
+        this.song_half_notified = false;
+        this.before_end_notified = false;
+        var url = this.checkForSoundcloudUrl(song.url);
+        this.setQueueNumber(n);
+        this.audio.src = url;
+        this.audio.load();
+        this.dispatchEvent(
+            'loading', 
+            {
+                'song': song, 
+                'queueNumber': this.getQueueNumber(), 
+                'audio': this.getAudioProperties()
+            }
+        );
+        if(this.load_timeout !== -1){
+            this.loadTimeout = setTimeout(
+                this.timeoutLoading.bind(this), 
+                this.load_timeout
+            );
+        }
+        this.cut();
     }
     else{
-        this.dispatchEvent('validatePlayFunctionFalse');
+        this.dispatchEvent('offline');    
     }
 }
 
@@ -555,7 +561,8 @@ PlayQueue.prototype.checkForSoundcloudUrl = function(url){
 // if we should check for online status
 // see if we are online or off
 // see if song can be played while offline
-PlayQueue.prototype.checkOnlineStatusShouldLoad = function(song, isSong){
+PlayQueue.prototype.checkOnlineStatusShouldLoad = function(song){
+    var isSong = _.isObject(song);
     var shouldLoad = true;
     if(this.checkOnlineStatus === true){
         if(navigator.onLine === false){
