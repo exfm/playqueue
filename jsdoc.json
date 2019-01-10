@@ -1,0 +1,15 @@
+{
+  "source": {
+    "include": ["lib" ]
+  },
+  "opts": {
+    "destination": "./docs",
+    "readme": "./README.md"
+  },
+  "templates": {
+    "default": {
+      "outputSourceFiles": false
+    }
+  },
+  "plugins": [ "plugins/markdown" ]
+}
