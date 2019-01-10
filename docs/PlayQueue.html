@@ -235,6 +235,222 @@
 
         
             
+<h4 class="name" id="autoNext"><span class="type-signature"></span>autoNext<span class="type-signature"> :boolean</span></h4>
+
+
+
+
+<div class="description">
+    <p>If true, we should automatically go to next song when current song ends. Good to set to false if<br>client goes offline so itdoesn't skip through all songs.</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>true</li>
+        </ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="isStopped"><span class="type-signature">(readonly) </span>isStopped<span class="type-signature"> :boolean</span></h4>
+
+
+
+
+<div class="description">
+    <p>If a song is playing or paused will return false.</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>true</li>
+        </ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="lengthCap"><span class="type-signature"></span>lengthCap<span class="type-signature"> :number</span></h4>
+
+
+
+
+<div class="description">
+    <p>If set will limit the max length of the list. -1 means no cap.</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">number</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>-1</li>
+        </ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
 <h4 class="name" id="list"><span class="type-signature"></span>list<span class="type-signature"> :array</span></h4>
 
 
@@ -302,14 +518,87 @@
 
         
             
+<h4 class="name" id="loadTimeout"><span class="type-signature"></span>loadTimeout<span class="type-signature"> :number</span></h4>
+
+
+
+
+<div class="description">
+    <p>Number of milliseconds waited before deciding the current song loading is not going to load 
+and will skip to next song</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">number</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>15000</li>
+        </ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
 <h4 class="name" id="notifyBeforeEnd"><span class="type-signature"></span>notifyBeforeEnd<span class="type-signature"> :boolean</span></h4>
 
 
 
 
 <div class="description">
-    <p>Get or set if we should fire 'ended' event manually. Mobile safari doesn't always fire 'ended' 
- event. This will look at the time and fire it manually when it's .1 to end. [boolean].</p>
+    <p>If true, will trigger 'ended' event manually when there is .1s remaining in song. 
+Fix for mobile Safari which doesn't always fire 'ended' event when song ends.</p>
 </div>
 
 
@@ -353,6 +642,83 @@
     
 
     
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>false</li>
+        </ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="notifySongHalf"><span class="type-signature"></span>notifySongHalf<span class="type-signature"> :boolean</span></h4>
+
+
+
+
+<div class="description">
+    <p>If true, will trigger 'songHalf' event at half point of playing song.</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>false</li>
+        </ul></dd>
+    
 
     
 
@@ -376,7 +742,8 @@
 
 
 <div class="description">
-    <p>Get or set the position of the current song playing [number].</p>
+    <p>Get or set the position of the current song playing. If number is changed, will immediatelly skip to 
+that position in list.</p>
 </div>
 
 
@@ -436,6 +803,296 @@
 
 
         
+            
+<h4 class="name" id="shuffle"><span class="type-signature"></span>shuffle<span class="type-signature"> :boolean</span></h4>
+
+
+
+
+<div class="description">
+    <p>If set to true, will shuffle the current list. Setting back to false will revert to original list order.</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>false</li>
+        </ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="smartPrevious"><span class="type-signature"></span>smartPrevious<span class="type-signature"> :boolean</span></h4>
+
+
+
+
+<div class="description">
+    <p>If true, calling 'previous' method will start current song playing again if it is more than 10 seconds
+in. If false, will go back to previous song in list.</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>true</li>
+        </ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="useLocalStorage"><span class="type-signature"></span>useLocalStorage<span class="type-signature"> :boolean</span></h4>
+
+
+
+
+<div class="description">
+    <p>If true, list, queueNumber, and shuffled state will be stored in localStorage and set on page load.</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>false</li>
+        </ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="userCanStop"><span class="type-signature"></span>userCanStop<span class="type-signature"> :boolean</span></h4>
+
+
+
+
+<div class="description">
+    <p>If true, on last song in list, user can click next and it will immediatelly end song and trigger 
+'stop' event.</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">boolean</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>false</li>
+        </ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
     
 
     
@@ -459,7 +1116,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Jan 10 2019 13:03:31 GMT-0500 (EST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Jan 10 2019 14:30:32 GMT-0500 (EST)
 </footer>
 
 <script> prettyPrint(); </script>
