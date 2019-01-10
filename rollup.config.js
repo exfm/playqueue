@@ -6,7 +6,7 @@ import pkg from './package.json';
 export default [
 	// browser-friendly UMD build
 	{
-		entry: 'index.js',
+		entry: 'lib/index.js',
 		dest: pkg.browser,
 		format: 'umd',
 		moduleName: 'audio-controls',
@@ -25,7 +25,7 @@ export default [
 	// builds from a single configuration where possible, using
 	// the `targets` option which can specify `dest` and `format`)
 	{
-		entry: 'index.js',
+		entry: 'lib/index.js',
 		targets: [
 			{ dest: pkg.main, format: 'cjs' },
 			{ dest: pkg.module, format: 'es' }

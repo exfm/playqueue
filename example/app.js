@@ -13,10 +13,10 @@ class App {
         console.log('listChange', obj);
       });
       playQueue.list = [{'url': 'example.m4a'}];
-      playQueue.add({'url': 'example.m4a'});
+      playQueue.add([{'url': 'example.m4a'}, {'url': 'example.m4a'}]);
       //playQueue.clear();
-      //playQueue.remove(0);
-      playQueue.list = [];
+      playQueue.remove(1);
+      //playQueue.list = [];
     });
   }
   
