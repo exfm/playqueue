@@ -10,14 +10,16 @@ class App {
       'useLocalStorage': true
     });
     list.innerHTML = JSON.stringify(playQueue.list);
-    console.log(playQueue.list, playQueue.queueNumber, playQueue.shuffle);
+    console.log(playQueue.list, playQueue.position, playQueue.shuffle);
     if (playQueue.shuffle === true) {
       document.querySelector('#shuffle').setAttribute('checked', 'checked');
     }
     playQueue.on('listChange', obj => {
       console.log('listChange', obj);
       list.innerHTML = JSON.stringify(obj.list);
-      
+    });
+    playQueue.on('error', obj => {
+      console.log('error', obj);
     });
     document.querySelector('#add').addEventListener('click', e => {
       playQueue.add([
@@ -29,7 +31,7 @@ class App {
         {'url': `${this.originalIndex}`}, 
         {'url': `${this.originalIndex}`}
       ]);
-      playQueue.queueNumber = 5;
+      playQueue.play();
     });
     
     document.querySelector('#remove').addEventListener('click', e => {
