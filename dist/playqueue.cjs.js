@@ -2646,74 +2646,54 @@ var AudioManager = function () {
 
     // todo do we need removeEventListeners?
     value: function addAudioListeners() {
-      var _this = this;
-
       if (this.audio && this.listenersAdded === false) {
-
-        //todo where is canPlay?
-        this.audio.addEventListener('canplay', this.canPlay.bind(this));
-
-        if (this.notifyBeforeEnd === true || this.notifySongHalf === true) {
+        this.audio.addEventListener('canplay', this.audioOnCanPlay.bind(this));
+        this.audio.addEventListener('error', this.audioOnError.bind(this));
+        this.audio.addEventListener('play', this.audioOnPlay.bind(this));
+        this.audio.addEventListener('pause', this.audioOnPause.bind(this));
+        if (this.shouldNotifyBeforeEnd === true || this.shouldNotifySongHalf === true) {
           this.audio.addEventListener('timeupdate', this.timeUpdate.bind(this));
         }
-
-        // todo if notifyBeforeEnd becomes true later, this needs to be set
-        if (this.notifyBeforeEnd === false) {
-          this.audio.addEventListener('ended', function (e) {
-            _this.eventBus.trigger('audio:next');
-          });
+        if (this.shouldNotifyBeforeEnd === false) {
+          this.audio.addEventListener('ended', this.next.bind(this));
         }
-
-        this.audio.addEventListener('error', function (e) {
-          _this.eventBus.trigger('audio:error');
-        });
-
-        //todo where is audioOnPlay
-        this.audio.addEventListener('play', this.audioOnPlay.bind(this));
-
-        //todo where is audioOnPause?
-        this.audio.addEventListener('pause', this.audioOnPause.bind(this));
-
-        this.audio.addEventListener('remoteprevious', function (e) {
-          _this.eventBus.trigger('audio:previous');
-        });
-
-        this.audio.addEventListener('remotenext', function (e) {
-          _this.eventBus.trigger('audio:next');
-        });
+        this.audio.addEventListener('remoteprevious', this.previous.bind(this));
+        this.audio.addEventListener('remotenext', this.next.bind(this));
       }
     }
 
     //todo why do "playing" here vs. "canplay"?
-    // todo document this event
 
   }, {
-    key: 'canPlay',
-    value: function canPlay() {
+    key: 'audioOnCanPlay',
+    value: function audioOnCanPlay() {
       this.canPlayCalled = true;
       this.audio.play();
-      this.eventBus.trigger('playing', {
-        'song': this.listManager.song,
-        'audio': this.audioProperties,
-        'queueNumber': this.listManager.queueNumber
-      });
+      this.triggerEvent('playing');
     }
+
+    // Listener on audio timeupdate
+    // Handles shouldNotifyBeforeEnd and shouldNotifySongHalf
+
   }, {
     key: 'timeUpdate',
-    value: function timeUpdate() {}
-    //todo
-
+    value: function timeUpdate() {
+      if (this.shouldNotifyBeforeEnd === true && this.audio.duration > 0 && this.audio.duration - this.audio.currentTime < .5 && this.beforeEndNotified === false) {
+        this.beforeEndNotified = true;
+        this.next({ 'type': 'ended' });
+      }
+      if (this.shouldNotifySongHalf === true && this.songHalfNotified === false && this.audio.currentTime / this.audio.duration > .5) {
+        this.songHalfNotified = true;
+        this.triggerEvent('songHalf');
+      }
+    }
 
     // Trigger play event when audio play is triggered adding some useful data
 
   }, {
     key: 'audioOnPlay',
     value: function audioOnPlay(e) {
-      this.eventBus.trigger('play', {
-        'song': this.listManager.song,
-        'audio': this.audioProperties,
-        'queueNumber': this.listManager.queueNumber
-      });
+      this.triggerEvent('play');
     }
 
     // Trigger pause event when audio pause is triggered adding some useful data
@@ -2721,11 +2701,18 @@ var AudioManager = function () {
   }, {
     key: 'audioOnPause',
     value: function audioOnPause(e) {
-      this.eventBus.trigger('pause', {
-        'song': this.listManager.song,
-        'audio': this.audioProperties,
-        'queueNumber': this.listManager.queueNumber
-      });
+      this.triggerEvent('pause');
+    }
+
+    // Fires 'error' event song cannot load or has timed out 
+    // Then calls next
+
+  }, {
+    key: 'audioOnError',
+    value: function audioOnError() {
+      clearTimeout(this.loadTimeoutFn);
+      this.triggerEvent('error');
+      this.next({ 'type': 'ended' });
     }
 
     // play a song at a given index
@@ -2805,23 +2792,27 @@ var AudioManager = function () {
   }, {
     key: '_play',
     value: function _play(song, n) {
-      //todo - online status?
-      //var shouldLoad = this.checkOnlineStatusShouldLoad(song);
       clearTimeout(this.loadTimeoutFn);
       this.isStopped = false;
       this.songHalfNotified = false;
       this.beforeEndNotified = false;
-      this.listMananger.queueNumber = n;
+      this.listManager.position = n;
       this.audio.src = song.url;
       this.audio.load();
-      //todo document this event
-      this.eventBus.trigger('loading', {
-        'song': song,
-        'queueNumber': this.listMananger.queueNumber,
-        'audio': this.audioProperties
-      });
+      this.triggerEvent('loading');
       if (this.loadTimeout !== -1) {
-        this.loadTimeoutloadTimeoutFn = setTimeout(this.timeoutLoading.bind(this), this.loadTimeout);
+        this.loadTimeoutFn = setTimeout(this.timeoutLoading.bind(this), this.loadTimeout);
+      }
+    }
+
+    // This is called when loadTimeout is reached
+    // If song has not started, next is called
+
+  }, {
+    key: 'timeoutLoading',
+    value: function timeoutLoading() {
+      if (this.canPlayCalled === false) {
+        this.audioOnError();
       }
     }
 
@@ -2832,7 +2823,7 @@ var AudioManager = function () {
     key: 'togglePlay',
     value: function togglePlay() {
       if (this.isStopped === true) {
-        this.play(this.listMananager.queueNumber);
+        this.play(this.listMananager.position);
       } else {
         if (this.audio.paused) {
           this.audio.play();
@@ -2840,6 +2831,7 @@ var AudioManager = function () {
           this.audio.pause();
         }
       }
+      return this.audio.paused;
     }
 
     // This will pause the current audio
@@ -2859,8 +2851,105 @@ var AudioManager = function () {
     }
 
     // Return current audio properties plus some useful data
-    //todo Object.assign({'isStopped': this.isStopped}, this.audio);
 
+  }, {
+    key: 'seek',
+
+
+    // Seek audio by percentage of song
+    // Percentage range = 0-1
+    value: function seek(percentage) {
+      if (!isNaN(this.audio.duration)) {
+        this.audio.currentTime = Math.floor(percentage * this.audio.duration);
+      }
+    }
+
+    // This is called to skip to the next song in the list
+    // Called automatically when a song ends
+    // If there are no more songs in the list, calles stop
+    //todo - pass in forceStop to override userCanStop
+
+  }, {
+    key: 'next',
+    value: function next(e) {
+      // not user initiated
+      if (e && e.type === 'ended') {
+        if (this.listManager.position < this.listManager.length - 1 && this.listManager.autoNext === true) {
+          this._next();
+        } else {
+          this.stop();
+        }
+      } else {
+        // user initiated
+        if (this.listManager.position < this.listManager.length - 1) {
+          this._next();
+        } else {
+          if (this.userCanStop === true) {
+            this.stop();
+          }
+        }
+      }
+    }
+
+    // actually skip to the next song
+
+  }, {
+    key: '_next',
+    value: function _next(e) {
+      this.listManager.position = this.listManager.position + 1;
+      this.play(this.listManager.position);
+      this.triggerEvent('nextTrack');
+    }
+
+    // This is called to go to the previous song in the list
+    // If smart_previous is true, it will go back to current song
+    // when it is over 10 seconds in. Or else it will go to previous song
+
+  }, {
+    key: 'previous',
+    value: function previous() {
+      if (this.listManager.smartPrevious === true) {
+        if (this.audio.currentTime > 10) {
+          this.audio.currentTime = 0;
+        } else if (this.listManager.position > 0) {
+          this._previous();
+        }
+      } else if (this.listManager.position > 0) {
+        this._previous();
+      }
+    }
+
+    // actually go to the previous song
+
+  }, {
+    key: '_previous',
+    value: function _previous() {
+      this.listManager.position = this.listManager.position - 1;
+      this.play(this.listManager.position);
+      this.triggerEvent('previousTrack');
+    }
+
+    // This is called when we reach the end of the list
+    // Reset position
+
+  }, {
+    key: 'stop',
+    value: function stop() {
+      this.isStopped = true;
+      this.listManager.position = 0;
+      this.eventBus.trigger('stop', {
+        'audio': this.audioProperties
+      });
+    }
+  }, {
+    key: 'triggerEvent',
+    value: function triggerEvent(type) {
+      this.eventBus.trigger(type, {
+        'song': this.listManager.song,
+        'position': this.listManager.position,
+        'audio': this.audioProperties
+      });
+    }
   }, {
     key: 'eventBus',
     get: function get() {
@@ -2881,10 +2970,7 @@ var AudioManager = function () {
     key: 'audio',
     get: function get() {
       return this._audio;
-    }
-
-    //todo set up listeners
-    ,
+    },
     set: function set(_audio) {
       this._audio = _audio;
       this.addAudioListeners();
@@ -2906,12 +2992,12 @@ var AudioManager = function () {
       return false;
     }
   }, {
-    key: 'notifyBeforeEnd',
+    key: 'shouldNotifyBeforeEnd',
     get: function get() {
-      return this._notifyBeforeEnd || false;
+      return this._shouldNotifyBeforeEnd || false;
     },
     set: function set(bool) {
-      this._notifyBeforeEnd = bool;
+      this._shouldNotifyBeforeEnd = bool;
     }
 
     // Boolean if we already fired the fake 'ended' event
@@ -2933,12 +3019,12 @@ var AudioManager = function () {
       this._loadTimeout = num;
     }
   }, {
-    key: 'notifySongHalf',
+    key: 'shouldNotifySongHalf',
     get: function get() {
-      return this._notifySongHalf || false;
+      return this._shouldNotifySongHalf || false;
     },
     set: function set(bool) {
-      this._notifySongHalf = bool;
+      this._shouldNotifySongHalf = bool;
     }
 
     // Boolean if we already fired the song half event
@@ -2962,13 +3048,6 @@ var AudioManager = function () {
     set: function set(bool) {
       this._isStopped = bool;
     }
-
-    // todo - should this be an option or just always do it?
-    // should we first check if client is online before
-    // trying to load a song
-
-    //this.checkOnlineStatus = false;
-
   }, {
     key: 'validatePlayFunction',
     get: function get() {
@@ -2998,25 +3077,91 @@ var AudioManager = function () {
 
 /**
  * @event PlayQueue~preloading
- * @description Fired when there is a new attempt to play a song.
+ * @description Fires when there an attempt to play a new song.
  * @type {object}
- * @property {Song} song - The attempted song.
+ * @property {PlayQueue~Song} song - The attempted song.
  */
 
 /**
-* @event PlayQueue~play
-* @description Fired when a new song starts playing.
+* @event PlayQueue~loading
+* @description Fires when a new song is loading.
 * @type {object}
-* @property {Song} song - The playing song.
-* @property {number} queueNumber - Current queueNumber.
-* @property {object} audio
-* @property {boolean} audio.paused - Paused state of audio.
-* @property {boolean} audio.isStopped - Stopped state of playQueue.
-* @property {number} audio.currentTime - Current time of audio.
-* @property {number} audio.duration - Duration time of audio.
-* @property {string} audio.src - Src time of audio.
-* @property {string} audio.volume - Volume time of audio.
+* @property {PlayQueue~Song} song - The loading song.
 */
+
+/**
+ * @event PlayQueue~play
+ * @description Fires when a song resumes.
+ * @type {object}
+ * @property {PlayQueue~Song} song - The playing song.
+ * @property {number} position - Current position.
+ * @property {PlayQueue~audioProperties} audio - various audio properties.
+ */
+
+/**
+ * @event PlayQueue~playing
+ * @description Fires when a new song starts playing.
+ * @type {object}
+ * @property {PlayQueue~Song} song - The playing song.
+ * @property {number} position - Current position.
+ * @property {PlayQueue~audioProperties} audio - various audio properties.
+ */
+
+/**
+ * @event PlayQueue~pause
+ * @description Fires when a song pauses.
+ * @type {object}
+ * @property {PlayQueue~Song} song - The playing song.
+ * @property {number} position - Current position.
+ * @property {PlayQueue~audioProperties} audio - various audio properties.
+ */
+
+/**
+ * @event PlayQueue~error
+ * @description Fires when a song fails to load.
+ * @type {object}
+ * @property {PlayQueue~Song} song - The playing song.
+ * @property {number} position - Current position.
+ * @property {PlayQueue~audioProperties} audio - various audio properties.
+ */
+
+/**
+ * @event PlayQueue~songHalf
+ * @description Fires when a song is played halfway through.
+ * @type {object}
+ * @property {PlayQueue~Song} song - The playing song.
+ * @property {number} position - Current position.
+ * @property {PlayQueue~audioProperties} audio - various audio properties.
+ */
+
+/**
+ * @event PlayQueue~nextTrack
+ * @description Fires when the next method is called. 
+ * @type {object}
+ * @property {PlayQueue~Song} song - The playing song.
+ * @property {number} position - Current position.
+ * @property {PlayQueue~audioProperties} audio - various audio properties.
+ */
+
+/**
+ * @event PlayQueue~previousTrack
+ * @description Fires when the previous method is called. 
+ * @type {object}
+ * @property {PlayQueue~Song} song - The playing song.
+ * @property {number} position - Current position.
+ * @property {PlayQueue~audioProperties} audio - various audio properties.
+ */
+
+/**
+* @event PlayQueue~stop
+* @description Fires when the last song in the list ends. 
+* @type {object}
+* @property {PlayQueue~Song} song - The playing song.
+* @property {number} position - Current position.
+* @property {PlayQueue~audioProperties} audio - various audio properties.
+*/
+
+// todo - create a state object with song, audio, isStopped, position, shuffle, etc
 
 var ListManager = function () {
   function ListManager() {
@@ -3029,15 +3174,28 @@ var ListManager = function () {
   }
 
   _createClass(ListManager, [{
-    key: 'saveToLS',
-
-
-    // Save the list, queueNumber and shuffled state to localStorage
-    value: function saveToLS() {
+    key: 'initFromLocalStorage',
+    value: function initFromLocalStorage() {
+      var lsList = localStorage.getItem(this.localStorageNS + ':list');
+      if (lsList !== null) {
+        this._list = JSON.parse(lsList);
+      }
+      var lsPosition = localStorage.getItem(this.localStorageNS + ':position');
+      if (lsPosition !== null) {
+        this._position = JSON.parse(lsPosition);
+      }
+      var lsShuffle = localStorage.getItem(this.localStorageNS + ':shuffle');
+      if (lsShuffle !== null) {
+        this._shuffle = JSON.parse(lsShuffle);
+      }
+      this._useLocalStorage = true;
+    }
+  }, {
+    key: '_setPosition',
+    value: function _setPosition(num) {
+      this._position = num;
       if (this.useLocalStorage === true) {
-        localStorage.setItem(localStorageNS + ':list', this.list);
-        localStorage.setItem(localStorageNS + ':queueNumber', this.queueNumber);
-        localStorage.setItem(localStorageNS + ':shuffle', this.shuffle);
+        localStorage.setItem(this.localStorageNS + ':position', num);
       }
     }
   }, {
@@ -3058,7 +3216,6 @@ var ListManager = function () {
     value: function add(songs) {
       var _this2 = this;
 
-      console.log('limit', this.limit);
       var currentListLen = this.length;
       var added = [];
       if ((typeof songs === 'undefined' ? 'undefined' : _typeof(songs)) === 'object') {
@@ -3081,7 +3238,7 @@ var ListManager = function () {
       } else {
         this.addOriginalIndexToSong(added);
         if (this.shuffle === true) {
-          var remainingPart = this.list.splice(this.queueNumber + 1);
+          var remainingPart = this.list.splice(this.position + 1);
           var shuffledPart = this.shuffleArray(remainingPart.concat(added));
           shuffledPart.forEach(function (item) {
             _this2.list.push(item);
@@ -3103,13 +3260,13 @@ var ListManager = function () {
       var currentListLen = this.length;
       var returnValue = -1;
       if (this.list[n]) {
-        if (this.queueNumber === n) {
+        if (this.position === n) {
           if (this.audioManager.isStopped === false) {
             this.next(true);
           }
         }
-        if (this.queueNumber >= n && n !== 0) {
-          this.queueNumber = this.queueNumber - 1;
+        if (this.position >= n && n !== 0) {
+          this.position = this.position - 1;
         }
         var removed = this.list.splice(n, 1);
         this.listHasChanged([], removed, null, currentListLen);
@@ -3118,16 +3275,48 @@ var ListManager = function () {
       return returnValue;
     }
 
-    // clear the list, reset queueNumber, shuffled
+    // clear the list, reset position
 
   }, {
     key: 'clear',
     value: function clear() {
-      this.list = [];
+      if (this.length > 0) {
+        this.list = [];
+      }
+      this.position = 0;
     }
 
-    //todo change queueNumber to current song
+    // move a song from one position in the list to another
 
+  }, {
+    key: 'move',
+    value: function move(itemIndex, moveToIndex) {
+      if (itemIndex === moveToIndex) {
+        throw new RangeError('itemIndex cannot be equal to moveIndex');
+      }
+      if (itemIndex < 0) {
+        throw new RangeError('itemIndex out of bounds');
+      }
+      if (moveToIndex < 0) {
+        throw new RangeError('moveToIndex out of bounds');
+      }
+      if (this.length - 1 < itemIndex) {
+        throw new RangeError('itemIndex out of bounds');
+      }
+      if (this.length - 1 < moveToIndex) {
+        throw new TypeError('moveToIndex out of bounds');
+      }
+      var song = this.list.splice(itemIndex, 1);
+      this.list.splice(moveToIndex, 0, song[0]);
+      if (this.position === itemIndex) {
+        this.position = moveToIndex;
+      } else if (itemIndex < this.position && moveToIndex >= this.position) {
+        this.position = this.position - 1;
+      } else if (itemIndex > this.position && moveToIndex <= this.position) {
+        this.position = this.position + 1;
+      }
+      listHasChanged([], [], null, this.length);
+    }
   }, {
     key: 'shuffleArray',
     value: function shuffleArray(array) {
@@ -3143,9 +3332,26 @@ var ListManager = function () {
       }
       return array;
     }
+  }, {
+    key: 'shuffleList',
+    value: function shuffleList() {
+      var _this3 = this;
 
-    //todo change queueNumber to current song
-
+      var before = this.list.splice(0, this.position);
+      var currentSong = this.list.splice(0, 1);
+      var after = this.list.splice(0);
+      this.shuffleArray(before);
+      this.shuffleArray(after);
+      before.forEach(function (item) {
+        _this3.list.push(item);
+      });
+      currentSong.forEach(function (item) {
+        _this3.list.push(item);
+      });
+      after.forEach(function (item) {
+        _this3.list.push(item);
+      });
+    }
   }, {
     key: 'unShuffleList',
     value: function unShuffleList() {
@@ -3153,21 +3359,36 @@ var ListManager = function () {
         return a._originalIndex - b._originalIndex;
       });
     }
+
+    // Toggled shuffle state
+
+  }, {
+    key: 'toggleShuffle',
+    value: function toggleShuffle(start) {
+      if (this.shuffle === true) {
+        this.shuffle = false;
+      } else {
+        this.shuffle = true;
+      }
+      return this.shuffle;
+    }
   }, {
     key: 'listHasChanged',
     value: function listHasChanged(added, removed, positionAddedAt, oldListLength) {
-      // todo set local storage is needed
       var frozenList = JSON.parse(JSON.stringify(this.list));
       this.eventBus.trigger('listChange', {
         'list': frozenList,
         'length': frozenList.length,
-        'queueNumber': this.queueNumber,
+        'position': this.position,
         'added': added,
         'removed': removed,
         'positionAddedAt': positionAddedAt,
         'oldListLength': oldListLength,
         'shuffle': this.shuffle
       });
+      if (this.useLocalStorage === true) {
+        localStorage.setItem(this.localStorageNS + ':list', JSON.stringify(this.list));
+      }
     }
   }, {
     key: 'eventBus',
@@ -3214,9 +3435,8 @@ var ListManager = function () {
       } else {
         this._list = array;
         removed = currentList;
-        this.queueNumber = 0;
-        //todo - what is this.stop?
-        //this.stop();
+        this.position = 0;
+        this.audioManager.stop();
       }
       this.listHasChanged(added, removed, positionAddedAt, currentList.length);
     }
@@ -3225,18 +3445,29 @@ var ListManager = function () {
     get: function get() {
       return this.list.length;
     }
-
-    //todo consider changing this to position
-
   }, {
-    key: 'queueNumber',
+    key: 'position',
     get: function get() {
-      return this._queueNumber || 0;
+      return this._position || 0;
     },
     set: function set(num) {
-      this._queueNumber = num;
-      // todo call play after this is changed
-      // todo set local storage is needed
+      if (num >= 0) {
+        if (this.length > 0) {
+          if (num <= this.length - 1) {
+            this._setPosition(num);
+          } else {
+            throw new RangeError('Index out of bounds');
+          }
+        } else {
+          if (num === 0) {
+            this._setPosition(num);
+          } else {
+            throw new RangeError('Index out of bounds');
+          }
+        }
+      } else {
+        throw new RangeError('Index out of bounds');
+      }
     }
   }, {
     key: 'limit',
@@ -3252,8 +3483,8 @@ var ListManager = function () {
   }, {
     key: 'song',
     get: function get() {
-      if (this.list[this.queueNumber]) {
-        return this.list[this.queueNumber];
+      if (this.list[this.position]) {
+        return this.list[this.position];
       }
       return null;
     }
@@ -3293,8 +3524,19 @@ var ListManager = function () {
       return this._useLocalStorage || false;
     },
     set: function set(bool) {
+      var currentState = this.useLocalStorage;
       this._useLocalStorage = bool;
-      //todo save current list to local storage 
+      if (currentState === false && bool === true) {
+        //todo dont need to save after initital load
+        localStorage.setItem(this.localStorageNS + ':list', JSON.stringify(this.list));
+        localStorage.setItem(this.localStorageNS + ':position', JSON.stringify(this.position));
+        localStorage.setItem(this.localStorageNS + ':shuffle', JSON.stringify(this.shuffle));
+      }
+      if (bool === false) {
+        localStorage.removeItem(this.localStorageNS + ':list');
+        localStorage.removeItem(this.localStorageNS + ':position');
+        localStorage.removeItem(this.localStorageNS + ':shuffle');
+      }
     }
   }, {
     key: 'shuffle',
@@ -3302,19 +3544,22 @@ var ListManager = function () {
       return this._shuffle || false;
     },
     set: function set(bool) {
-      var _this3 = this;
-
+      var currentState = this.shuffle;
       this._shuffle = bool;
       if (bool === true) {
-        var shuffledPart = this.list.splice(this.queueNumber + 1);
-        this.shuffleArray(shuffledPart);
-        shuffledPart.forEach(function (item) {
-          _this3.list.push(item);
-        });
+        this.shuffleList();
       } else {
         this.unShuffleList();
       }
-      this.listHasChanged([], [], null, this.length);
+      if (bool !== currentState) {
+        this.eventBus.trigger('shuffleToggled', { 'shuffle': bool });
+      }
+      if (this.useLocalStorage === true) {
+        localStorage.setItem(this.localStorageNS + ':shuffle', JSON.stringify(bool));
+      }
+      if (this.length > 0) {
+        this.listHasChanged([], [], null, this.length);
+      }
     }
   }, {
     key: 'localStorageNS',
@@ -3325,7 +3570,24 @@ var ListManager = function () {
       return 'playqueue';
     },
     set: function set(str) {
-      this._localStorageNS = str;
+      if (str !== this.localStorageNS) {
+        var lsList = localStorage.getItem(this.localStorageNS + ':list');
+        var lsPosition = localStorage.getItem(this.localStorageNS + ':position');
+        var lsShuffle = localStorage.getItem(this.localStorageNS + ':shuffle');
+        if (lsList !== null) {
+          localStorage.removeItem(this.localStorageNS + ':list');
+          localStorage.setItem(str + ':list', lsList);
+        }
+        if (lsPosition !== null) {
+          localStorage.removeItem(this.localStorageNS + ':position');
+          localStorage.setItem(str + ':position', lsPosition);
+        }
+        if (lsShuffle !== null) {
+          localStorage.removeItem(this.localStorageNS + ':shuffle');
+          localStorage.setItem(str + ':shuffle', lsShuffle);
+        }
+        this._localStorageNS = str;
+      }
     }
   }, {
     key: 'originalIndex',
@@ -3346,11 +3608,11 @@ var ListManager = function () {
 
 /**
 * @event PlayQueue~listChange
-* @description Fired when any change to the list is made.
+* @description Fires when any change to the list is made.
 * @type {object}
 * @property {array} list - The full list.
 * @property {number} length - Current length of the list.
-* @property {number} queueNumber - The current queueNumber.
+* @property {number} position - The current position.
 * @property {array} added - Any new songs added to the list.
 * @property {array} removed - Any new songs removed from the list.
 * @property {number} positionAddedAt - If new songs where added, the position they were added at.
@@ -3358,16 +3620,32 @@ var ListManager = function () {
 * @property {boolean} shuffle - Current shuffle state.
 */
 
-var PlayQueue = function () {
+/**
+* @event PlayQueue~shuffleToggled
+* @description Fires when the shuffle state changes.
+* @property {boolean} shuffle - Current shuffle state.
+*/
 
-  //todo - add back externalHelpers to rollupconfig
+var PlayQueue = function () {
 
   /**
    * Create a PlayQueue
    * @class PlayQueue
    * @param {Object} opts
-   * @param {string} opts.audio - The underlying audio object.
-   * @param {number} [opts.limit=-1] - If set will limit the max length of the list.
+   * @param {Audio} opts.audio - The underlying audio object.
+   * @param {number} [opts.limit=-1] - If set will limit the max length of the [list]{@link PlayQueue#list}
+   * @param {number} [opts.loadTimeout=15000] - Number of milliseconds to wait for a song to load before 
+   * moving on to next song
+   * @param {boolean} [opts.useLocalStorage=false] - If true will save [list]{@link PlayQueue#list}, 
+   * [position]{@link PlayQueue#position}, and [shuffle]{@link PlayQueue#shuffle} state 
+   * in localStorage. Subsequent page loads will initialize with these saved values.
+   * @param {string} [opts.localStorageNS='playqueue'] - If useLocalStorage is true, items will be saved
+   * with the default namespace 'playqueue'. You can change the namespace to a different value.
+   * @param {boolean} [opts.shouldNotifySongHalf=false] - If true, will trigger 'songHalf' event 
+   *  at half point of playing song.
+   * @param {boolean} [opts.shouldNotifyBeforeEnd=false] - If true, will trigger 'ended' event manually
+   *  when there is .5s remaining in song. Fix for mobile Safari which doesn't always fire 'ended' 
+   *  event when song ends.
    * 
    * @example 
    * import {PlayQueue} from 'playqueue'; 
@@ -3375,7 +3653,10 @@ var PlayQueue = function () {
    * const audio = new Audio();
    *
    * const playQueue = new PlayQueue({
-   *   'audio': audio
+   *   'audio': audio,
+   *   'limit': 200,
+   *   'useLocalStorage': true,
+   *   'shouldNotifySongHalf': true,
    * });
    */
   function PlayQueue(opts) {
@@ -3409,32 +3690,6 @@ var PlayQueue = function () {
     if(_.indexOf(this.savedSongProperties, '_listPosition') === -1){
         this.savedSongProperties.push('_listPosition');
     }*/
-
-    // todo - need to figure out first load
-
-    /*
-    // this will save the list, queueNumber and shuffled state to localStorage
-    if(opts && opts.use_local_storage){
-        if (typeof(opts.use_local_storage) == "boolean"){
-            this.use_local_storage = opts.use_local_storage;
-            if (this.use_local_storage == true){
-                this.list =  storage.get(this.localStorageNS + 'list') || [];
-                this.queueNumber = storage.get(this.localStorageNS + 'queueNumber') || 0;
-                this.isShuffled = storage.get(this.localStorageNS + 'isShuffled') || false;
-            }
-        } 
-        else {
-            throw new TypeError("use_local_storage must be a boolean");
-        }
-    }*/
-
-    //todo may or may not need this
-
-    /*this.addEventListener(
-        "listChanged", 
-        this.saveLocally.bind(this), 
-        false
-    );*/
   }
 
   _createClass(PlayQueue, [{
@@ -3442,12 +3697,15 @@ var PlayQueue = function () {
     value: function setOpts(opts) {
       var _this = this;
 
-      var settableOpts = ['notifyBeforeEnd', 'notifySongHalf', 'loadTimeout', 'limit'];
+      var settableOpts = ['shouldNotifyBeforeEnd', 'shouldNotifySongHalf', 'loadTimeout', 'limit', 'localStorageNS'];
       settableOpts.forEach(function (settableOpt) {
         if (opts[settableOpt] !== undefined) {
           _this[settableOpt] = opts[settableOpt];
         }
       });
+      if (opts.useLocalStorage === true) {
+        this.listManager.initFromLocalStorage();
+      }
     }
   }, {
     key: 'add',
@@ -3456,7 +3714,7 @@ var PlayQueue = function () {
     /**
      * Add one or more Songs to the list.
      * @method
-     * @param {(Song|Song[]|string)} params - Song object or array. If string, pass in url of the song.
+     * @param {(PlayQueue~Song|PlayQueue~Song[]|string)} params - Song object or array. If string, pass in url of the song.
      * @throws {RangeError} Added songs cannot exceed limit if set.
      * @example // add multiple songs
      * playQueue.add([
@@ -3486,10 +3744,9 @@ var PlayQueue = function () {
     }
 
     /**
-     * Clear the list and resets queueNumber to 0.
+     * Clear the list and resets position to 0.
      * @method
      * @param {number} index - The index number
-     * @returns {number} The index removed or -1 if no song was found at that index.
      */
 
   }, {
@@ -3499,10 +3756,41 @@ var PlayQueue = function () {
     }
 
     /**
-     * Current playing song.
+     * Move a Song from one position in the list to another.
+     * @method
+     * @param {number} songIndex - The index number of the song to move
+     * @param {number} moveIndex - The index number to move the song to. Must be greater than 0 and less than
+     * the list length.
+     * @throws {RangeError} itemIndex cannot be equal to moveIndex
+     * @throws {RangeError} itemIndex out of bounds
+     * @throws {RangeError} moveToIndex out of bounds
+     */
+
+  }, {
+    key: 'move',
+    value: function move(songIndex, moveIndex) {
+      return this.listManager.remove(index);
+    }
+
+    /**
+     * Toggle the shuffle state.
+     * @method
+     * @returns {boolean} The new shuffle state.
+     */
+
+  }, {
+    key: 'toggleShuffle',
+    value: function toggleShuffle() {
+      return this.listManager.toggleShuffle();
+    }
+
+    // Audio Manager
+
+    //todo can make this an object or selector
+    /**
+     * The underlying audio object.  
      * @member
-     * @type {(Song|null)}
-     * @readonly
+     * @type {Audio}
      */
 
   }, {
@@ -3518,18 +3806,19 @@ var PlayQueue = function () {
     value: function play() {
       var index = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 
-      this.playMananger.play(index);
+      this.audioManager.play(index);
     }
 
     /**
      * Resume/pause the current song.  
      * @method
+     * @returns {boolean} The new paused state.
      */
 
   }, {
     key: 'togglePlay',
     value: function togglePlay() {
-      this.playMananger.togglePlay();
+      return this.audioManager.togglePlay();
     }
 
     /**
@@ -3555,9 +3844,55 @@ var PlayQueue = function () {
     }
 
     /**
+     * Seek to a position in the current song.   
+     * @method
+     * @param {number} percentage - 0-1
+     */
+
+  }, {
+    key: 'seek',
+    value: function seek(percentage) {
+      this.audioManager.seek(percentage);
+    }
+
+    /**
+     * Skip to the next song in the list.   
+     * @method
+     */
+
+  }, {
+    key: 'next',
+    value: function next() {
+      this.audioManager.next();
+    }
+
+    /**
+     * Go to the previous song in the list.  
+     * @method
+     */
+
+  }, {
+    key: 'previous',
+    value: function previous() {
+      this.audioManager.previous();
+    }
+
+    /**
+     * Stop playback. Resets position to 0.  
+     * @method
+     */
+
+  }, {
+    key: 'stop',
+    value: function stop() {
+      this.audioManager.stop();
+    }
+
+    /**
      * Various audio properties.
      * @member
      * @type {object}
+     * @property {PlayQueue~audioProperties} audio
      * @readonly
      */
 
@@ -3565,14 +3900,11 @@ var PlayQueue = function () {
     key: 'on',
 
 
-    //todo - add resume method
-
-
     // Event Bus
 
     /**
      * @method
-     * @description Add an event listener. 
+     * @description Add an event listener. [View all events]{@link PlayQueue~event:error}.
      * @param {string} type - The name of the event to listen on.
      * @param {function} listener - The callback function for when this event is triggered.
      */
@@ -3621,12 +3953,11 @@ var PlayQueue = function () {
     // List Manager
 
 
-    //todo define Song. Add and link to add, remove methods
     /**
      * Get or set the list of songs. If set, the entire list will be replaced. Use add or remove to manipulate
      * the list without replacing the whole list.
      * @member
-     * @type {Song[]}
+     * @type {PlayQueue~Song[]}
      */
 
   }, {
@@ -3650,6 +3981,14 @@ var PlayQueue = function () {
     get: function get() {
       return this.list.length;
     }
+
+    /**
+     * Current playing song.
+     * @member
+     * @type {(PlayQueue~Song|null)}
+     * @readonly
+     */
+
   }, {
     key: 'song',
     get: function get() {
@@ -3657,20 +3996,17 @@ var PlayQueue = function () {
     }
 
     /**
-     * Get or set the position of the current song playing. If number is changed, will immediatelly skip to 
-     * that position in list.
+     * Get or set the position of the current playing song in list.
      * @member
      * @type {number}
-     * @category List
+     * @readonly
+     * @throws {RangeError} Index must be less than list length.
      */
 
   }, {
-    key: 'queueNumber',
+    key: 'position',
     get: function get() {
-      return this.listManager.queueNumber;
-    },
-    set: function set(num) {
-      this.listManager.queueNumber = num;
+      return this.listManager.position;
     }
 
     /**
@@ -3725,7 +4061,7 @@ var PlayQueue = function () {
     }
 
     /**
-     * If true, list, queueNumber, and shuffled state will be stored in localStorage and set on page load.
+     * If true, list, position, and shuffled state will be stored in localStorage and set on page load.
      * @member
      * @type {boolean} 
      * @default false
@@ -3787,16 +4123,6 @@ var PlayQueue = function () {
     set: function set(str) {
       this.listManager.localStorageNS = str;
     }
-
-    // Audio Manager
-
-    //todo can make this an object or selector
-    /**
-     * The underlying audio object.  
-     * @member
-     * @type {Audio}
-     */
-
   }, {
     key: 'audio',
     get: function get() {
@@ -3806,22 +4132,19 @@ var PlayQueue = function () {
       this.audioManager.audio = _audio;
     }
 
-    //todo - change to shouldNotifyBeforeEnd
     /**
-     * If true, will trigger 'ended' event manually when there is .1s remaining in song. 
+     * If true, will trigger 'ended' event manually when there is .5s remaining in song. 
      * Fix for mobile Safari which doesn't always fire 'ended' event when song ends. 
      * @member
      * @type {boolean}
      * @default false
+     * @readonly
      */
 
   }, {
-    key: 'notifyBeforeEnd',
+    key: 'shouldNotifyBeforeEnd',
     get: function get() {
-      return this.audioManager.notifyBeforeEnd;
-    },
-    set: function set(bool) {
-      this.audioManager.notifyBeforeEnd = bool;
+      return this.audioManager.shouldNotifyBeforeEnd;
     }
 
     /**
@@ -3846,15 +4169,13 @@ var PlayQueue = function () {
      * @member
      * @type {boolean}
      * @default false
+     * @readonly
      */
 
   }, {
-    key: 'notifySongHalf',
+    key: 'shouldNotifySongHalf',
     get: function get() {
-      return this.audioManager.notifySongHalf;
-    },
-    set: function set(bool) {
-      this.audioManager.notifySongHalf = bool;
+      return this.audioManager.shouldNotifySongHalf;
     }
 
     /**
@@ -3871,10 +4192,9 @@ var PlayQueue = function () {
       return this.audioManager.isStopped;
     }
 
-    //to define song object
     /**
      * If set, before loading a song, this function will be called. It must return a promise. Promise must
-     * resolve with a song object (or reject).  
+     * resolve with a [Song]{@link PlayQueue~Song} object (or reject).  
      * @member
      * @type {function}
      */
@@ -3896,5 +4216,30 @@ var PlayQueue = function () {
 
   return PlayQueue;
 }();
+
+
+
+/**
+ * @typedef PlayQueue~audioProperties
+ * @description - various audio properties.
+ * @type {object}
+ * @property {boolean} paused - Paused state of audio.
+ * @property {boolean} isStopped - Stopped state of playQueue.
+ * @property {number} currentTime - Current time of audio.
+ * @property {number} duration - Duration time of audio.
+ * @property {string} src - Src time of audio.
+ * @property {string} volume - Volume time of audio.
+ */
+
+/**
+* @typedef PlayQueue~Song
+* @description - Expected object for list.
+* @type {object}
+* @property {string} url - The local or remote url to play.
+* @property {string} [title] - The name of the song.
+* @property {string} [artist] - The song's artist.
+* @property {string} [album] - Album the song appears on.
+* @property {string} [coverart] - Image url for album art.
+*/
 
 exports.PlayQueue = PlayQueue;
