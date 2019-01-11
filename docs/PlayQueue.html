@@ -40,7 +40,7 @@
 			<li class="dropdown">
 				<a href="events.list.html" class="dropdown-toggle" data-toggle="dropdown">Events<b class="caret"></b></a>
 				<ul class="dropdown-menu ">
-					<li><a href="PlayQueue.html#~event:listChange">PlayQueue~event:listChange</a></li><li><a href="PlayQueue.html#~event:play">PlayQueue~event:play</a></li><li><a href="PlayQueue.html#~event:preloading">PlayQueue~event:preloading</a></li>
+					<li><a href="PlayQueue.html#~event:error">PlayQueue~event:error</a></li><li><a href="PlayQueue.html#~event:listChange">PlayQueue~event:listChange</a></li><li><a href="PlayQueue.html#~event:nextTrack">PlayQueue~event:nextTrack</a></li><li><a href="PlayQueue.html#~event:pause">PlayQueue~event:pause</a></li><li><a href="PlayQueue.html#~event:play">PlayQueue~event:play</a></li><li><a href="PlayQueue.html#~event:playing">PlayQueue~event:playing</a></li><li><a href="PlayQueue.html#~event:preloading">PlayQueue~event:preloading</a></li><li><a href="PlayQueue.html#~event:previousTrack">PlayQueue~event:previousTrack</a></li><li><a href="PlayQueue.html#~event:shuffleToggled">PlayQueue~event:shuffleToggled</a></li><li><a href="PlayQueue.html#~event:songHalf">PlayQueue~event:songHalf</a></li><li><a href="PlayQueue.html#~event:stop">PlayQueue~event:stop</a></li>
 				</ul>
 			</li>
 			
@@ -1025,7 +1025,7 @@ and will skip to next song</p>
 <dd>
     
     <div class="description">
-        <p>If true, will trigger 'ended' event manually when there is .1s remaining in song. 
+        <p>If true, will trigger 'ended' event manually when there is .5s remaining in song. 
 Fix for mobile Safari which doesn't always fire 'ended' event when song ends.</p>
     </div>
     
@@ -2011,30 +2011,317 @@ playQueue.add(&#x27;1.mp3&#x27;);</pre>
     
 
     
-    <h5>Returns:</h5>
+
     
-            
-<div class="param-desc">
-    <p>The index removed or -1 if no song was found at that index.</p>
-</div>
+</dd>
 
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
         
+            
+<hr>
+<dt>
+    <h4 class="name" id="move"><span class="type-signature"></span>move(songIndex, moveIndex)</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Move a Song from one position in the list to another</p>
+    </div>
+    
+
+    
+
+    
+
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>songIndex</code></td>
+            
+
+            <td class="type">
+            
+                
 <span class="param-type">number</span>
 
 
 
-    </dd>
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The index number of the song to move</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>moveIndex</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The index number to move the song to. Must be greater than 0 and less than
+the list length.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
 </dl>
 
 
+    
+
+    
+
+    
+
+    
+
+    
+    <h5>Throws:</h5>
+    <ul>
+            <li>
+
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>itemIndex cannot be equal to moveIndex</p>
+        </div>
+    </dt>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">RangeError</span>
+
+
+
+            </dd>
+        </dl>
+    </dt>
+</dl>
+
+</li>
         
+            <li>
+
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>itemIndex out of bounds</p>
+        </div>
+    </dt>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">RangeError</span>
+
+
+
+            </dd>
+        </dl>
+    </dt>
+</dl>
+
+</li>
+        
+            <li>
+
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>moveToIndex out of bounds</p>
+        </div>
+    </dt>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">RangeError</span>
+
+
+
+            </dd>
+        </dl>
+    </dt>
+</dl>
+
+</li>
+        </ul>
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="next"><span class="type-signature"></span>next()</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Skip to the next song in the list.</p>
+    </div>
+    
+
+    
+
+    
+
+    
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
 
     
 </dd>
@@ -2622,6 +2909,84 @@ is provided, all listeners of the type will be removed.</p></td>
             
 <hr>
 <dt>
+    <h4 class="name" id="previous"><span class="type-signature"></span>previous()</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Go to the previous song in the list.</p>
+    </div>
+    
+
+    
+
+    
+
+    
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
     <h4 class="name" id="remove"><span class="type-signature"></span>remove(index)</h4>
     
     
@@ -2852,6 +3217,212 @@ is provided, all listeners of the type will be removed.</p></td>
             
 <hr>
 <dt>
+    <h4 class="name" id="seek"><span class="type-signature"></span>seek(percentage)</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Seek to a position in the current song.</p>
+    </div>
+    
+
+    
+
+    
+
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>percentage</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>0-1</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="stop"><span class="type-signature"></span>stop()</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Stop playback. Resets queueNumber to 0.</p>
+    </div>
+    
+
+    
+
+    
+
+    
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
     <h4 class="name" id="togglePlay"><span class="type-signature"></span>togglePlay()</h4>
     
     
@@ -2926,6 +3497,108 @@ is provided, all listeners of the type will be removed.</p></td>
     
 </dd>
 
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="toggleShuffle"><span class="type-signature"></span>toggleShuffle()</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Toggle the shuffle state.</p>
+    </div>
+    
+
+    
+
+    
+
+    
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    <p>The new shuffle state.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">boolean</span>
+
+
+
+    </dd>
+</dl>
+
+
+        
+
+    
+</dd>
+
         </dl>
     
 
@@ -2938,6 +3611,360 @@ is provided, all listeners of the type will be removed.</p></td>
             
 <hr>
 <dt>
+    <h4 class="name" id="~event:error">error</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Fires when a song fails to load.</p>
+    </div>
+    
+
+    
+
+    
+        <h5>Type: 
+<span class="param-type">object</span>
+
+
+</h5>
+    
+
+    
+    
+
+    
+<dl class="details">
+    
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    <dl>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>song</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Song</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The playing song.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>queueNumber</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Current queueNumber.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>audio</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <h6>Properties</h6>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>paused</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Paused state of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>isStopped</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Stopped state of playQueue.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>currentTime</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Current time of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>duration</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Duration time of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>src</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Src time of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>volume</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Volume time of audio.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+</dl>
+
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
     <h4 class="name" id="~event:listChange">listChange</h4>
     
     
@@ -2946,7 +3973,7 @@ is provided, all listeners of the type will be removed.</p></td>
 
     
     <div class="description">
-        <p>Fired when any change to the list is made.</p>
+        <p>Fires when any change to the list is made.</p>
     </div>
     
 
@@ -3243,6 +4270,714 @@ is provided, all listeners of the type will be removed.</p></td>
             
 <hr>
 <dt>
+    <h4 class="name" id="~event:nextTrack">nextTrack</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Fires when the next method is called.</p>
+    </div>
+    
+
+    
+
+    
+        <h5>Type: 
+<span class="param-type">object</span>
+
+
+</h5>
+    
+
+    
+    
+
+    
+<dl class="details">
+    
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    <dl>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>song</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Song</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The playing song.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>queueNumber</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Current queueNumber.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>audio</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <h6>Properties</h6>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>paused</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Paused state of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>isStopped</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Stopped state of playQueue.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>currentTime</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Current time of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>duration</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Duration time of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>src</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Src time of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>volume</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Volume time of audio.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+</dl>
+
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="~event:pause">pause</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Fires when a song pauses.</p>
+    </div>
+    
+
+    
+
+    
+        <h5>Type: 
+<span class="param-type">object</span>
+
+
+</h5>
+    
+
+    
+    
+
+    
+<dl class="details">
+    
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    <dl>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>song</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Song</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The playing song.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>queueNumber</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Current queueNumber.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>audio</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <h6>Properties</h6>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>paused</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Paused state of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>isStopped</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Stopped state of playQueue.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>currentTime</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Current time of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>duration</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Duration time of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>src</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Src time of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>volume</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Volume time of audio.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+</dl>
+
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
     <h4 class="name" id="~event:play">play</h4>
     
     
@@ -3251,7 +4986,361 @@ is provided, all listeners of the type will be removed.</p></td>
 
     
     <div class="description">
-        <p>Fired when a new song starts playing.</p>
+        <p>Fires when a song resumes.</p>
+    </div>
+    
+
+    
+
+    
+        <h5>Type: 
+<span class="param-type">object</span>
+
+
+</h5>
+    
+
+    
+    
+
+    
+<dl class="details">
+    
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    <dl>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>song</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Song</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The playing song.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>queueNumber</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Current queueNumber.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>audio</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <h6>Properties</h6>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>paused</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Paused state of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>isStopped</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Stopped state of playQueue.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>currentTime</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Current time of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>duration</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Duration time of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>src</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Src time of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>volume</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Volume time of audio.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+</dl>
+
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="~event:playing">playing</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Fires when a new song starts playing.</p>
     </div>
     
 
@@ -3605,7 +5694,7 @@ is provided, all listeners of the type will be removed.</p></td>
 
     
     <div class="description">
-        <p>Fired when there is a new attempt to play a song.</p>
+        <p>Fires when there an attempt to play a new song.</p>
     </div>
     
 
@@ -3730,6 +5819,1151 @@ is provided, all listeners of the type will be removed.</p></td>
     
 </dd>
 
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="~event:previousTrack">previousTrack</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Fires when the previous method is called.</p>
+    </div>
+    
+
+    
+
+    
+        <h5>Type: 
+<span class="param-type">object</span>
+
+
+</h5>
+    
+
+    
+    
+
+    
+<dl class="details">
+    
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    <dl>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>song</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Song</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The playing song.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>queueNumber</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Current queueNumber.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>audio</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <h6>Properties</h6>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>paused</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Paused state of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>isStopped</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Stopped state of playQueue.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>currentTime</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Current time of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>duration</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Duration time of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>src</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Src time of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>volume</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Volume time of audio.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+</dl>
+
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="~event:shuffleToggled">shuffleToggled</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Fires when the shuffle state changes.</p>
+    </div>
+    
+
+    
+
+    
+
+    
+    
+
+    
+<dl class="details">
+    
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    <dl>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>shuffle</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Current shuffle state.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+</dl>
+
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="~event:songHalf">songHalf</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Fires when a song is played halfway through.</p>
+    </div>
+    
+
+    
+
+    
+        <h5>Type: 
+<span class="param-type">object</span>
+
+
+</h5>
+    
+
+    
+    
+
+    
+<dl class="details">
+    
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    <dl>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>song</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Song</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The playing song.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>queueNumber</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Current queueNumber.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>audio</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <h6>Properties</h6>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>paused</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Paused state of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>isStopped</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Stopped state of playQueue.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>currentTime</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Current time of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>duration</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Duration time of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>src</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Src time of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>volume</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Volume time of audio.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+</dl>
+
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="~event:stop">stop</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Fires when the last song in the list ends.</p>
+    </div>
+    
+
+    
+
+    
+        <h5>Type: 
+<span class="param-type">object</span>
+
+
+</h5>
+    
+
+    
+    
+
+    
+<dl class="details">
+    
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    <dl>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>audio</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <h6>Properties</h6>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>paused</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Paused state of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>isStopped</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Stopped state of playQueue.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>currentTime</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Current time of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>duration</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Duration time of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>src</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Src time of audio.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>volume</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Volume time of audio.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+</dl>
+
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
         </dl>
     
 </article>
@@ -3761,7 +6995,7 @@ is provided, all listeners of the type will be removed.</p></td>
 <span class="jsdoc-message">
 	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a>
 	
-		on 2019-01-11T10:16:30-05:00
+		on 2019-01-11T11:52:07-05:00
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>

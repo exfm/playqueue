@@ -13,22 +13,22 @@ class App {
     document.querySelector('#add').addEventListener('click', e => {
       
       //playQueue.limit = 3;
+/*
       playQueue.list = [
         {'url': `${this.originalIndex}`}, 
         {'url': `${this.originalIndex}`}, 
         {'url': `${this.originalIndex}`}, 
         {'url': `${this.originalIndex}`}
       ];
-/*
+*/
       playQueue.add([
         {'url': `${this.originalIndex}`}, 
         {'url': `${this.originalIndex}`}, 
         {'url': `${this.originalIndex}`}, 
         {'url': `${this.originalIndex}`}
       ]);
-*/
       
-      playQueue.queueNumber = 2;
+      playQueue.queueNumber = 5;
       //playQueue.clear();
       //playQueue.remove(1);
       //playQueue.list = [];
