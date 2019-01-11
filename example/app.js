@@ -7,17 +7,46 @@ class App {
     const playQueue = new PlayQueue({
       'audio': audio
     });
-    document.querySelector('#play').addEventListener('click', e => {
-      
-      playQueue.on('listChange', obj => {
-        console.log('listChange', obj);
-      });
-      playQueue.list = [{'url': 'example.m4a'}];
-      playQueue.add([{'url': 'example.m4a'}, {'url': 'example.m4a'}]);
-      //playQueue.clear();
-      playQueue.remove(1);
-      //playQueue.list = [];
+    playQueue.on('listChange', obj => {
+      console.log('listChange', obj);
     });
+    document.querySelector('#add').addEventListener('click', e => {
+      
+      //playQueue.limit = 3;
+      playQueue.list = [
+        {'url': `${this.originalIndex}`}, 
+        {'url': `${this.originalIndex}`}, 
+        {'url': `${this.originalIndex}`}, 
+        {'url': `${this.originalIndex}`}
+      ];
+/*
+      playQueue.add([
+        {'url': `${this.originalIndex}`}, 
+        {'url': `${this.originalIndex}`}, 
+        {'url': `${this.originalIndex}`}, 
+        {'url': `${this.originalIndex}`}
+      ]);
+*/
+      
+      playQueue.queueNumber = 2;
+      //playQueue.clear();
+      //playQueue.remove(1);
+      //playQueue.list = [];
+      //playQueue.add([{'url': '3'}, {'url': '4'}]);
+    });
+    
+    document.querySelector('#shuffle').addEventListener('change', e => {
+      playQueue.shuffle = e.target.checked;
+    });
+  }
+  
+  get originalIndex() {
+    if (this._originalIndex === undefined) {
+      this._originalIndex = 0
+    } else {
+      this._originalIndex = this._originalIndex + 1;
+    }
+    return this._originalIndex;
   }
   
 }

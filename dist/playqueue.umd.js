@@ -105,6 +105,8 @@ var EventBus = function () {
 
 var _createClass$3 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
 function _classCallCheck$3(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var AudioManager = function () {
@@ -177,8 +179,104 @@ var AudioManager = function () {
     }
   }, {
     key: 'audioOnPause',
-    value: function audioOnPause() {
-      //todo
+    value: function audioOnPause() {}
+    //todo
+
+
+    // play a song at a given index
+
+  }, {
+    key: 'play',
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(n) {
+        var proposedSong, song;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                this.canPlayCalled = false;
+                proposedSong = this.listManager.list[n];
+
+                if (!proposedSong) {
+                  _context.next = 20;
+                  break;
+                }
+
+                this.eventBus.trigger('preloading', { 'song': proposedSong });
+
+                if (!this.validatePlayFunction) {
+                  _context.next = 17;
+                  break;
+                }
+
+                _context.prev = 5;
+                _context.next = 8;
+                return this.validatePlayFunction(proposedSong);
+
+              case 8:
+                song = _context.sent;
+
+                this._play(song, n);
+                _context.next = 15;
+                break;
+
+              case 12:
+                _context.prev = 12;
+                _context.t0 = _context['catch'](5);
+
+                console.error(_context.t0);
+
+              case 15:
+                _context.next = 18;
+                break;
+
+              case 17:
+                this._play(proposedSong, n);
+
+              case 18:
+                _context.next = 21;
+                break;
+
+              case 20:
+                throw new RangeError('Index out of bounds. Got: ' + n + '. List length: ' + this.listManager.length);
+
+              case 21:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this, [[5, 12]]);
+      }));
+
+      function play(_x) {
+        return _ref.apply(this, arguments);
+      }
+
+      return play;
+    }()
+
+    // play the song
+
+  }, {
+    key: '_play',
+    value: function _play(song, n) {
+      //todo - online status?
+      //var shouldLoad = this.checkOnlineStatusShouldLoad(song);
+      clearTimeout(this.loadTimeoutFn);
+      this.isStopped = false;
+      this.songHalfNotified = false;
+      this.beforeEndNotified = false;
+      this.queueNumber = n;
+      this.audio.src = song.url;
+      this.audio.load();
+      this.eventBus.trigger('loading', {
+        'song': song,
+        'queueNumber': queueNumber,
+        'audio': this.audioProperties
+      });
+      if (this.loadTimeout !== -1) {
+        this.loadTimeoutloadTimeoutFn = setTimeout(this.timeoutLoading.bind(this), this.loadTimeout);
+      }
     }
   }, {
     key: 'eventBus',
@@ -187,6 +285,14 @@ var AudioManager = function () {
         this._eventBus = new EventBus();
       }
       return this._eventBus;
+    }
+  }, {
+    key: 'listManager',
+    get: function get() {
+      if (!this._listManager) {
+        this._listManager = new ListManager();
+      }
+      return this._listManager;
     }
   }, {
     key: 'audio',
@@ -293,6 +399,15 @@ var AudioManager = function () {
   return AudioManager;
 }();
 
+
+
+/**
+ * @event PlayQueue~preloading
+ * @description Fired when there is a new attempt to play a song.
+ * @type {object}
+ * @property {Song} song - The attempted song.
+ */
+
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var _createClass$1 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -321,6 +436,15 @@ var ListManager = function () {
         localStorage.setItem(localStorageNS + ':shuffle', this.shuffle);
       }
     }
+  }, {
+    key: 'addOriginalIndexToSong',
+    value: function addOriginalIndexToSong(songs) {
+      var _this = this;
+
+      songs.forEach(function (item) {
+        item._originalIndex = _this.originalIndex;
+      });
+    }
 
     // add songs to the list. Takes an array of objects,
     // a single object or a single url string
@@ -328,8 +452,9 @@ var ListManager = function () {
   }, {
     key: 'add',
     value: function add(songs) {
-      var _this = this;
+      var _this2 = this;
 
+      console.log('limit', this.limit);
       var currentListLen = this.length;
       var added = [];
       if ((typeof songs === 'undefined' ? 'undefined' : _typeof(songs)) === 'object') {
@@ -347,27 +472,23 @@ var ListManager = function () {
       } else if (typeof songs === 'string') {
         added.push({ 'url': songs });
       }
-      added.forEach(function (item, i) {
-        item._listPosition = currentListLen + i;
-      });
-      if (this.shuffle === true) {
-        //const firstPart = this.list.slice(0, this.queueNumber + 1);
-
-        var remainingPart = this.list.splice(queueNumber + 1);
-
-        //const remainingPart = this.list.slice(queueNumber + 1); 
-        var shuffledPart = this.shuffleArray(remainingPart.concat(added));
-        shuffledPart.forEach(function (item) {
-          _this.list.push(item);
-        });
-        //this.list = firstPart.concat(shuffledPart);
+      if (this.limit > -1 && currentListLen + added.length > this.limit) {
+        throw new RangeError('\n        List has ' + this.length + ' songs. \n        Adding ' + added.length + ' songs will go over limit (' + this.limit + ')\n      ');
       } else {
-        added.forEach(function (item) {
-          _this.list.push(item);
-        });
-        //this.list = this.list.concat(added);
+        this.addOriginalIndexToSong(added);
+        if (this.shuffle === true) {
+          var remainingPart = this.list.splice(this.queueNumber + 1);
+          var shuffledPart = this.shuffleArray(remainingPart.concat(added));
+          shuffledPart.forEach(function (item) {
+            _this2.list.push(item);
+          });
+        } else {
+          added.forEach(function (item) {
+            _this2.list.push(item);
+          });
+        }
+        this.listHasChanged(added, [], currentListLen, currentListLen);
       }
-      this.listHasChanged(added, [], currentListLen, currentListLen);
     }
 
     // remove a song from the list by index
@@ -387,7 +508,6 @@ var ListManager = function () {
           this.queueNumber = this.queueNumber - 1;
         }
         var removed = this.list.splice(n, 1);
-        this.updateListPositions(removed[0]._listPosition);
         this.listHasChanged([], removed, null, currentListLen);
         returnValue = n;
       }
@@ -400,28 +520,6 @@ var ListManager = function () {
     key: 'clear',
     value: function clear() {
       this.list = [];
-    }
-
-    // after the list was manipulated, 
-    // update the _listPosition property on each song
-    // todo - why do we care if it is shuffled?
-
-  }, {
-    key: 'updateListPositions',
-    value: function updateListPositions() {
-      var n = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-
-      if (this.shuffle === false) {
-        this.list.forEach(function (item, i) {
-          item._listPosition = i;
-        });
-      } else {
-        this.list.forEach(function (item, i) {
-          if (item._listPosition > n) {
-            item._listPosition--;
-          }
-        });
-      }
     }
   }, {
     key: 'shuffleArray',
@@ -439,10 +537,17 @@ var ListManager = function () {
       return array;
     }
   }, {
+    key: 'unShuffleList',
+    value: function unShuffleList() {
+      this.list.sort(function (a, b) {
+        return a._originalIndex - b._originalIndex;
+      });
+    }
+  }, {
     key: 'listHasChanged',
     value: function listHasChanged(added, removed, positionAddedAt, oldListLength) {
       // todo set local storage is needed
-      var frozenList = [].concat(this.list);
+      var frozenList = JSON.parse(JSON.stringify(this.list));
       this.eventBus.trigger('listChange', {
         'list': frozenList,
         'length': frozenList.length,
@@ -473,10 +578,10 @@ var ListManager = function () {
   }, {
     key: 'list',
     get: function get() {
-      if (this._list !== undefined) {
-        return this._list;
+      if (this._list === undefined) {
+        this._list = [];
       }
-      return [];
+      return this._list;
     },
     set: function set(array) {
       var currentList = [].concat(this.list);
@@ -484,12 +589,17 @@ var ListManager = function () {
       var added = [];
       var positionAddedAt = null;
       if (array.length > 0) {
-        positionAddedAt = currentList.length;
-        added = [].concat(array);
-        if (this.shuffle === true) {
-          this._list = this.shuffleArray(array);
+        if (this.limit > -1 && array.length > this.limit) {
+          throw new RangeError('\n          List has ' + this.length + ' songs. \n          Adding ' + array.length + ' songs will go over limit (' + this.limit + ')\n        ');
         } else {
-          this._list = array;
+          positionAddedAt = currentList.length;
+          added = [].concat(array);
+          this.addOriginalIndexToSong(added);
+          if (this.shuffle === true) {
+            this._list = this.shuffleArray(array);
+          } else {
+            this._list = array;
+          }
         }
       } else {
         this._list = array;
@@ -498,7 +608,6 @@ var ListManager = function () {
         //todo - what is this.stop?
         //this.stop();
       }
-      this.updateListPositions();
       this.listHasChanged(added, removed, positionAddedAt, currentList.length);
     }
   }, {
@@ -518,6 +627,17 @@ var ListManager = function () {
       this._queueNumber = num;
       // todo call play after this is changed
       // todo set local storage is needed
+    }
+  }, {
+    key: 'limit',
+    get: function get() {
+      if (this._limit === undefined) {
+        return -1;
+      }
+      return this._limit;
+    },
+    set: function set(num) {
+      this._limit = num;
     }
   }, {
     key: 'smartPrevious',
@@ -564,9 +684,19 @@ var ListManager = function () {
       return this._shuffle || false;
     },
     set: function set(bool) {
+      var _this3 = this;
+
       this._shuffle = bool;
-      // todo shuffle the list
-      // todo set local storage is needed
+      if (bool === true) {
+        var shuffledPart = this.list.splice(this.queueNumber + 1);
+        this.shuffleArray(shuffledPart);
+        shuffledPart.forEach(function (item) {
+          _this3.list.push(item);
+        });
+      } else {
+        this.unShuffleList();
+      }
+      this.listHasChanged([], [], null, this.length);
     }
   }, {
     key: 'localStorageNS',
@@ -578,6 +708,16 @@ var ListManager = function () {
     },
     set: function set(str) {
       this._localStorageNS = str;
+    }
+  }, {
+    key: 'originalIndex',
+    get: function get() {
+      if (this._originalIndex === undefined) {
+        this._originalIndex = 0;
+      } else {
+        this._originalIndex = this._originalIndex + 1;
+      }
+      return this._originalIndex;
     }
   }]);
 
@@ -605,6 +745,8 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var PlayQueue = function () {
+
+  //todo - add back externalHelpers to rollupconfig
 
   /**
    * Create a PlayQueue
@@ -678,7 +820,7 @@ var PlayQueue = function () {
     value: function setOpts(opts) {
       var _this = this;
 
-      var settableOpts = ['notifyBeforeEnd', 'notifySongHalf', 'loadTimeout', 'lengthCap'];
+      var settableOpts = ['notifyBeforeEnd', 'notifySongHalf', 'loadTimeout', 'limit'];
       settableOpts.forEach(function (settableOpt) {
         if (opts[settableOpt] !== undefined) {
           _this[settableOpt] = opts[settableOpt];
@@ -911,19 +1053,19 @@ var PlayQueue = function () {
     }
 
     /**
-     * If set will limit the max length of the list. -1 means no cap.
+     * If set will limit the max length of the list. -1 means no limit.
      * @member
      * @type {number} 
      * @default -1
      */
 
   }, {
-    key: 'lengthCap',
+    key: 'limit',
     get: function get() {
-      return this.listManager.lengthCap;
+      return this.listManager.limit;
     },
     set: function set(num) {
-      this.listManager.lengthCap = num;
+      this.listManager.limit = num;
     }
 
     /**
