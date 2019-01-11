@@ -3,40 +3,49 @@ import {PlayQueue} from './../lib/index.js';
 class App {
   
   constructor() {
+    const list = document.querySelector('#list');
     const audio = new Audio();
     const playQueue = new PlayQueue({
-      'audio': audio
+      'audio': audio,
+      'useLocalStorage': true
     });
+    list.innerHTML = JSON.stringify(playQueue.list);
+    console.log(playQueue.list, playQueue.queueNumber, playQueue.shuffle);
+    if (playQueue.shuffle === true) {
+      document.querySelector('#shuffle').setAttribute('checked', 'checked');
+    }
     playQueue.on('listChange', obj => {
       console.log('listChange', obj);
+      list.innerHTML = JSON.stringify(obj.list);
+      
     });
     document.querySelector('#add').addEventListener('click', e => {
-      
-      //playQueue.limit = 3;
-/*
-      playQueue.list = [
-        {'url': `${this.originalIndex}`}, 
-        {'url': `${this.originalIndex}`}, 
-        {'url': `${this.originalIndex}`}, 
-        {'url': `${this.originalIndex}`}
-      ];
-*/
       playQueue.add([
         {'url': `${this.originalIndex}`}, 
         {'url': `${this.originalIndex}`}, 
         {'url': `${this.originalIndex}`}, 
+        {'url': `${this.originalIndex}`},
+        {'url': `${this.originalIndex}`}, 
+        {'url': `${this.originalIndex}`}, 
         {'url': `${this.originalIndex}`}
       ]);
-      
       playQueue.queueNumber = 5;
-      //playQueue.clear();
-      //playQueue.remove(1);
-      //playQueue.list = [];
-      //playQueue.add([{'url': '3'}, {'url': '4'}]);
+    });
+    
+    document.querySelector('#remove').addEventListener('click', e => {
+      playQueue.remove(0);
+    });
+    
+    document.querySelector('#clear').addEventListener('click', e => {
+      playQueue.clear();
     });
     
     document.querySelector('#shuffle').addEventListener('change', e => {
       playQueue.shuffle = e.target.checked;
+    });
+    
+    document.querySelector('#ls').addEventListener('change', e => {
+      playQueue.useLocalStorage = e.target.checked;
     });
   }
   

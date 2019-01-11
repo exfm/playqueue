@@ -4,14 +4,31 @@
     <script async src="./app.js" type="module"></script>
     <style>
       
+      .content {
+        margin: 20px;
+      }
+      
+      textarea {
+        display: block;
+        width: 250px;
+        height: 400px;
+        margin-top: 20px;
+      }
       
     </style>
   </head>
   <body>
     <div class="content">
-      <div id="add">Add</div>
+      <button id="add">Add Songs</button>
+      <button id="remove">Remove Song 0</button>
+      <button id="clear">Clear List</button>
+      
       <label for="shuffle">Shuffle</label>
       <input type="checkbox" id="shuffle" />
+      <label for="ls">Use localStorage</label>
+      <input type="checkbox" id="ls" checked />
+      
+      <textarea id="list"></textarea>
     </div>
   </body>
 </html>
