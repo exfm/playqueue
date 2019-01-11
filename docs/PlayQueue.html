@@ -40,7 +40,7 @@
 			<li class="dropdown">
 				<a href="events.list.html" class="dropdown-toggle" data-toggle="dropdown">Events<b class="caret"></b></a>
 				<ul class="dropdown-menu ">
-					<li><a href="PlayQueue.html#~event:error">PlayQueue~event:error</a></li><li><a href="PlayQueue.html#~event:listChange">PlayQueue~event:listChange</a></li><li><a href="PlayQueue.html#~event:nextTrack">PlayQueue~event:nextTrack</a></li><li><a href="PlayQueue.html#~event:pause">PlayQueue~event:pause</a></li><li><a href="PlayQueue.html#~event:play">PlayQueue~event:play</a></li><li><a href="PlayQueue.html#~event:playing">PlayQueue~event:playing</a></li><li><a href="PlayQueue.html#~event:preloading">PlayQueue~event:preloading</a></li><li><a href="PlayQueue.html#~event:previousTrack">PlayQueue~event:previousTrack</a></li><li><a href="PlayQueue.html#~event:shuffleToggled">PlayQueue~event:shuffleToggled</a></li><li><a href="PlayQueue.html#~event:songHalf">PlayQueue~event:songHalf</a></li><li><a href="PlayQueue.html#~event:stop">PlayQueue~event:stop</a></li>
+					<li><a href="PlayQueue.html#~event:error">PlayQueue~event:error</a></li><li><a href="PlayQueue.html#~event:listChange">PlayQueue~event:listChange</a></li><li><a href="PlayQueue.html#~event:loading">PlayQueue~event:loading</a></li><li><a href="PlayQueue.html#~event:nextTrack">PlayQueue~event:nextTrack</a></li><li><a href="PlayQueue.html#~event:pause">PlayQueue~event:pause</a></li><li><a href="PlayQueue.html#~event:play">PlayQueue~event:play</a></li><li><a href="PlayQueue.html#~event:playing">PlayQueue~event:playing</a></li><li><a href="PlayQueue.html#~event:preloading">PlayQueue~event:preloading</a></li><li><a href="PlayQueue.html#~event:previousTrack">PlayQueue~event:previousTrack</a></li><li><a href="PlayQueue.html#~event:shuffleToggled">PlayQueue~event:shuffleToggled</a></li><li><a href="PlayQueue.html#~event:songHalf">PlayQueue~event:songHalf</a></li><li><a href="PlayQueue.html#~event:stop">PlayQueue~event:stop</a></li>
 				</ul>
 			</li>
 			
@@ -176,7 +176,7 @@
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type">Audio</span>
 
 
 
@@ -326,6 +326,47 @@ in localStorage. Subsequent page loads will initialize with these saved values.<
         </tr>
 
     
+
+        <tr>
+            
+                <td class="name"><code>localStorageNS</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    'playqueue'
+                
+                </td>
+            
+
+            <td class="description last"><p>If useLocalStorage is true, items will be saved
+with the default namespace 'playqueue'. You can change the namespace to a different value.</p></td>
+        </tr>
+
+    
     </tbody>
 </table>
 
@@ -400,7 +441,8 @@ const audio = new Audio();
 const playQueue = new PlayQueue({
   &#x27;audio&#x27;: audio,
   &#x27;limit&#x27;: 200,
-  &#x27;useLocalStorage&#x27;: true
+  &#x27;useLocalStorage&#x27;: true,
+  &#x27;localStorageNS&#x27;: &#x27;myapp&#x27;
 });</pre>
 
 
@@ -1156,15 +1198,14 @@ and will skip to next song</p>
             
 <hr>
 <dt class="name" id="position">
-    <h4 id="position"><span class="type-signature"></span>position<span class="type-signature"> :number</span></h4>
+    <h4 id="position"><span class="type-signature">&lt;readonly> </span>position<span class="type-signature"> :number</span></h4>
 
     
 </dt>
 <dd>
     
     <div class="description">
-        <p>Get or set the position of the current song playing. If number is changed, will immediatelly skip to 
-that position in list.</p>
+        <p>Get or set the position of the current playing song in list.</p>
     </div>
     
 
@@ -4751,6 +4792,143 @@ is provided, all listeners of the type will be removed.</p></td>
             
 <hr>
 <dt>
+    <h4 class="name" id="~event:loading">loading</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Fires when a new song is loading.</p>
+    </div>
+    
+
+    
+
+    
+        <h5>Type: 
+<span class="param-type">object</span>
+
+
+</h5>
+    
+
+    
+    
+
+    
+<dl class="details">
+    
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    <dl>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>song</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="PlayQueue.html#~Song">PlayQueue~Song</a></span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The loading song.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+</dl>
+
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
     <h4 class="name" id="~event:nextTrack">nextTrack</h4>
     
     
@@ -6341,7 +6519,7 @@ is provided, all listeners of the type will be removed.</p></td>
 <span class="jsdoc-message">
 	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a>
 	
-		on 2019-01-11T13:36:27-05:00
+		on 2019-01-11T15:00:04-05:00
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>
